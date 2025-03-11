@@ -155,16 +155,16 @@ B = (B + B.T) / 2  # enforce symmetry of synthesized barycenter
 ## RECOVER VECTOR OF WEIGHTS AND RECONSTRUCTED BARYCENTER B_RECON FROM SYNTHESIZED BARYCENTER USING
 # get_lambdas FUNCTION AND COMPUTING ERROR ########################################################
 B_recon, lambdas = get_lambdas(matrix_temp_list, measure_temp_list, B, b)
+B_recon = (B_recon + B_recon.T) /2 # Enforce Symmetry of the Reconstructed Barycenter matrix
 print('Lambdas Error = ', np.linalg.norm(lambdas_list - lambdas, 1))
 
-## COMPARING POT-SYTHETIZED BARYCENTER B VS RECONSTRUCTED BARYCENTER B-RECON
-# BY COMPUTING THE GW-DISTANCE BETWEEN THEM
+
+
+## COMPARING POT-SYTHETIZED BARYCENTER B VS RECONSTRUCTED BARYCENTER B-RECON BY COMPUTING THE
+# GW-DISTANCE BETWEEN THEM ########################################################################
 gromov_distance = ot.gromov.gromov_wasserstein(B, B_recon, b, b, log=True)[1]
 gw_dist = gromov_distance['gw_dist']
 print(f'GW(Target,Reconstructed Target): {gw_dist}')
-
-# Enforce Symmetry of the Reconstructed Barycenter matrix
-B_recon = (B_recon + B_recon.T) / 2
 
 
 
