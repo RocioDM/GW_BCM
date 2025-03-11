@@ -24,3 +24,27 @@ def load_pointcloudmnist2d():
     # Create a list of indices for each digit (0-9), grouping their occurrences in the dataset
     digit_indices = [np.where(label == digit)[0].tolist() for digit in range(10)]
     return Data, label, digit_indices
+
+
+def normalize_2Dpointcloud_coordinates(C):
+    """
+    Normalizes a set of 2D points so that they are centered around the origin
+    and scaled to fit within the unit square [0,1] x [0,1].
+
+    Input:
+    :param C: (numpy array of shape (N,2)) A set of N 2D points.
+
+    Output:
+    :return C: (numpy array of shape (N,2)) The normalized set of points.
+    """
+
+    # Center the points by subtracting the mean of each coordinate
+    C = C - C.mean(0)[np.newaxis, :]
+
+    # Shift the points so the minimum coordinate in each axis is 0
+    C -= C.min(axis=0)
+
+    # Scale the points so the maximum coordinate in each axis is 1
+    C /= C.max(axis=0)
+
+    return C

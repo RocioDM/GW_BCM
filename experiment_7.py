@@ -55,11 +55,8 @@ for s in range(n_temp):
     C_s = Data[ind, valid_indices, :2]
 
     # Center the points by subtracting the mean
-    C_s = C_s - C_s.mean(0)[np.newaxis, :]
-
-    # Normalize coordinates to fit within the unit square [0,1]²
-    C_s -= C_s.min(axis=0)  # Shift to start at 0
-    C_s /= C_s.max(axis=0)  # Scale to fit within [0,1]
+    # and Normalize coordinates to fit within the unit square [0,1]²
+    C_s = utils.normalize_2Dpointcloud_coordinates(C_s)
 
     # Compute the pairwise Euclidean distance matrix for C_s
     dist_matrix_s = sp.spatial.distance.cdist(C_s, C_s)
@@ -109,12 +106,8 @@ points_B = mds.fit_transform(B)
 points_B_recon = mds.fit_transform(B_recon)
 
 # Center and fit points to be in the [0,1]x[0,1] square for visualization
-points_B = points_B - points_B.mean(0)[np.newaxis, :]
-points_B -= points_B.min(axis=0)
-points_B /= points_B.max(axis=0)
-points_B_recon = points_B_recon - points_B_recon.mean(0)[np.newaxis, :]
-points_B_recon -= points_B_recon.min(axis=0)
-points_B_recon /= points_B_recon.max(axis=0)
+points_B = utils.normalize_2Dpointcloud_coordinates(points_B)
+points_B_recon = utils.normalize_2Dpointcloud_coordinates(points_B_recon)
 
 
 
@@ -125,9 +118,7 @@ axes = axes.flatten()
 for i, ind in enumerate(ind_temp_list):
     a = Data[ind, :, 2]
     X = Data[ind, a != -1, :2]
-    X = X - X.mean(0)[np.newaxis, :]
-    X -= X.min(axis=0)
-    X /= X.max(axis=0)
+    X = utils.normalize_2Dpointcloud_coordinates(X)
     a = a[a != -1]
     a = a / float(a.sum())
     axes[i].scatter(X[:, 0], X[:, 1], s=a * 250)

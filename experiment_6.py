@@ -34,23 +34,23 @@ def occlusion(X,a):
     :return a_occluded: (numpy array) The corresponding weights, renormalized to sum to 1.
     '''
 
-  # Define occlusion box
-  box_center = np.array([0.5, 0.5])  # Center of the occlusion
-  box_size = np.array([0.3, 0.3])  # Width and height of the occlusion box
-  box_min = box_center - box_size / 2
-  box_max = box_center + box_size / 2
+    # Define occlusion box
+    box_center = np.array([0.5, 0.5])  # Center of the occlusion
+    box_size = np.array([0.3, 0.3])  # Width and height of the occlusion box
+    box_min = box_center - box_size / 2
+    box_max = box_center + box_size / 2
 
-  # Mask points inside the box
-  mask = (X[:, 0] < box_min[0]) | (X[:, 0] > box_max[0]) | (X[:, 1] < box_min[1]) | (X[:, 1] > box_max[1])
+    # Mask points inside the box
+    mask = (X[:, 0] < box_min[0]) | (X[:, 0] > box_max[0]) | (X[:, 1] < box_min[1]) | (X[:, 1] > box_max[1])
 
-  # Apply mask to X and a
-  X_occluded = X[mask]  # Keep only points outside the occlusion box
-  a_occluded = a[mask]  # Remove mass inside the box
+    # Apply mask to X and a
+    X_occluded = X[mask]  # Keep only points outside the occlusion box
+    a_occluded = a[mask]  # Remove mass inside the box
 
-  # Renormalize `a` so it sums to 1
-  a_occluded /= a_occluded.sum()
+    # Renormalize `a` so it sums to 1
+    a_occluded /= a_occluded.sum()
 
-  return X_occluded, a_occluded
+    return X_occluded, a_occluded
 
 
 
@@ -70,10 +70,8 @@ u = np.random.randint(0, 100)
 a = Data[u, :, 2]  # Original mass values
 X = Data[u, a != -1, :2]  # Extract valid points
 
-# Normalize X
-X = X - X.mean(0)[np.newaxis, :]
-X -= X.min(axis=0)
-X /= X.max(axis=0)
+# Normalize X: center and scaled to fit within the unit square [0,1] x [0,1]
+X = utils.normalize_2Dpointcloud_coordinates(X)
 
 # Filter `a` (only keep valid entries)
 a = a[a != -1]
@@ -146,11 +144,7 @@ for s in range(n_temp):
     C_s = Data[ind, valid_indices, :2]
 
     # Center the points by subtracting the mean
-    C_s = C_s - C_s.mean(0)[np.newaxis, :]
-
-    # Normalize coordinates to fit within the unit square [0,1]²
-    C_s -= C_s.min(axis=0)  # Shift to start at 0
-    C_s /= C_s.max(axis=0)  # Scale to fit within [0,1]
+    C_s = utils.normalize_2Dpointcloud_coordinates(C_s)
 
     # Compute the pairwise Euclidean distance matrix for C_s
     dist_matrix_s = sp.spatial.distance.cdist(C_s, C_s)
@@ -188,9 +182,7 @@ B = (B + B.T) / 2  # enforce symmetry
 
 # Center and fit points to be in the [0,1]x[0,1] square for later visualization
 points_B = mds.fit_transform(B, init=C_s)
-points_B = points_B - points_B.mean(0)[np.newaxis, :]
-points_B -= points_B.min(axis=0)
-points_B /= points_B.max(axis=0)
+points_B = utils.normalize_2Dpointcloud_coordinates(points_B)
 
 ## Occluding the barycenter and compute distance matrix
 B1, b1 = occlusion(points_B, b)
@@ -215,9 +207,7 @@ print(f'GW(Target,Reconstructed Target): {gw_dist}')
 
 ## Fit and transform the distance matrix
 points_B_recon = mds.fit_transform(B_recon, init=points_B)
-points_B_recon = points_B_recon - points_B_recon.mean(0)[np.newaxis, :]
-points_B_recon -= points_B_recon.min(axis=0)
-points_B_recon /= points_B_recon.max(axis=0)
+points_B_recon = utils.normalize_2Dpointcloud_coordinates(points_B_recon)
 
 
 
@@ -229,9 +219,7 @@ axes = axes.flatten()
 for i, ind in enumerate(ind_temp_list):
     a = Data[ind, :, 2]
     X = Data[ind, a != -1, :2]
-    X = X - X.mean(0)[np.newaxis, :]
-    X -= X.min(axis=0)
-    X /= X.max(axis=0)
+    X = utils.normalize_2Dpointcloud_coordinates(X)
     a = a[a != -1]
     a = a / float(a.sum())
     axes[i].scatter(X[:, 0], X[:, 1], s=a * 500)
@@ -265,7 +253,7 @@ axes[1].set_title('Occluded barycenter')
 axes[1].set_xticks([])  # Remove x-axis ticks
 axes[1].set_yticks([])  # Remove y-axis ticks
 
-axes[2].scatter(-points_B_recon[:, 0], -points_B_recon[:, 1], s=b * 500)
+axes[2].scatter(-points_B_recon[:, 0], points_B_recon[:, 1], s=b * 500)
 axes[2].set_title('Reconstructed Barycenter')
 axes[2].set_xticks([])  # Remove x-axis ticks
 axes[2].set_yticks([])  # Remove y-axis ticks
