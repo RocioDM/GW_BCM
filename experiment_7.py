@@ -93,7 +93,7 @@ print('Lambdas Error = ', np.linalg.norm(lambdas_list - lambdas, 1))
 
 
 
-## COMPARING POT-SYTHETIZED BARYCENTER B VS RECONSTRUCTED BARYCENTER B-RECON BY COMPUTING THE
+## COMPARING POT-SYTHESIZED BARYCENTER B VS RECONSTRUCTED BARYCENTER B-RECON BY COMPUTING THE
 # GW-DISTANCE BETWEEN THEM ########################################################################
 gromov_distance = ot.gromov.gromov_wasserstein(B, B_recon, b, b, log=True)[1]
 gw_dist = gromov_distance['gw_dist']
