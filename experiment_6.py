@@ -143,7 +143,7 @@ for s in range(n_temp):
     # Extract spatial coordinates (first two columns of Data) for valid points
     C_s = Data[ind, valid_indices, :2]
 
-    #Center the points by subtracting the mean
+    # Center the points by subtracting the mean
     # and Normalize coordinates to fit within the unit square [0,1]²
     C_s = utils.normalize_2Dpointcloud_coordinates(C_s)
 
@@ -206,7 +206,7 @@ gromov_distance = ot.gromov.gromov_wasserstein(B, B_recon, b, b, log=True)[1]
 gw_dist = gromov_distance['gw_dist']
 print(f'GW(Target,Reconstructed Target): {gw_dist}')
 
-## Fit and transform the distance matrix
+## Fit and transform the distance matrix of B_recon
 points_B_recon = mds.fit_transform(B_recon, init=points_B)
 points_B_recon = utils.normalize_2Dpointcloud_coordinates(points_B_recon)
 
@@ -250,7 +250,7 @@ axes[0].set_xticks([])  # Remove x-axis ticks
 axes[0].set_yticks([])  # Remove y-axis ticks
 
 axes[1].scatter(B1[:, 0], B1[:, 1], s=b1 * 500)
-axes[1].set_title('Occluded barycenter')
+axes[1].set_title('Occluded Barycenter')
 axes[1].set_xticks([])  # Remove x-axis ticks
 axes[1].set_yticks([])  # Remove y-axis ticks
 
