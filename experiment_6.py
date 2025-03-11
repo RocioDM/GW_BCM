@@ -143,7 +143,8 @@ for s in range(n_temp):
     # Extract spatial coordinates (first two columns of Data) for valid points
     C_s = Data[ind, valid_indices, :2]
 
-    # Center the points by subtracting the mean
+    #Center the points by subtracting the mean
+    # and Normalize coordinates to fit within the unit square [0,1]²
     C_s = utils.normalize_2Dpointcloud_coordinates(C_s)
 
     # Compute the pairwise Euclidean distance matrix for C_s
