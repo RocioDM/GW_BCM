@@ -3,7 +3,7 @@
 ## GW - barycenters from an occluded sample and occluded templates
 ## and recover the sample using the recovered weights and non-occluded templates.
 ## The input sample is taken in the Barycenter space of the non-occluded templates and then
-## corrupted under occlusion (rectangular mask).
+## corrupted under occlusion (circular mask).
 
 import numpy as np # linear algebra
 import pandas as pd # data processing
@@ -21,9 +21,9 @@ import utils
 
 
 ## USER DEFINED FUNCTIONS #########################################################################
-def occlusion(X,a):
+def occlusion_circular(X, a):
     '''
-    Applies an occlusion mask to a set of 2D points and their corresponding weights.
+    Applies an occlusion mask using a circular region to a set of 2D points and their corresponding weights.
 
     Input:
     :param X: (numpy array of shape (N,2)) A set of N 2D points (point coordinates).
@@ -33,19 +33,19 @@ def occlusion(X,a):
     :return X_occluded: (numpy array) The points that remain after occlusion.
     :return a_occluded: (numpy array) The corresponding weights, renormalized to sum to 1.
     '''
+    # Define occlusion circle
+    circle_center = np.array([0.5, 0.5])  # Center of the occlusion
+    radius = 0.2  # Radius of the occlusion circle
 
-    # Define occlusion box
-    box_center = np.array([0.5, 0.5])  # Center of the occlusion
-    box_size = np.array([0.3, 0.3])  # Width and height of the occlusion box
-    box_min = box_center - box_size / 2
-    box_max = box_center + box_size / 2
+    # Compute distance from each point to the circle center
+    distances = np.linalg.norm(X - circle_center, axis=1)
 
-    # Mask points inside the box
-    mask = (X[:, 0] < box_min[0]) | (X[:, 0] > box_max[0]) | (X[:, 1] < box_min[1]) | (X[:, 1] > box_max[1])
+    # Mask points outside the circle
+    mask = distances > radius
 
     # Apply mask to X and a
-    X_occluded = X[mask]  # Keep only points outside the occlusion box
-    a_occluded = a[mask]  # Remove mass inside the box
+    X_occluded = X[mask]  # Keep only points outside the occlusion circle
+    a_occluded = a[mask]  # Remove mass inside the circle
 
     # Re-normalize `a` so it sums to 1
     a_occluded /= a_occluded.sum()
@@ -53,16 +53,8 @@ def occlusion(X,a):
     return X_occluded, a_occluded
 
 
-
 ## DATASET LOADING ################################################################################
-# Data: array of the form (sample_index, point_index, [point_coordinate[0],point_coordinate[1],point_mass])
-# label: labels(0-9) for Data
-# digit_indices: list(len 10) of indices for each digit (0-9)
 Data, label, digit_indices = utils.load_pointcloudmnist2d()
-
-
-
-
 
 ## TEST THE OCCLUSION FUNCTION IN ONE SAMPLE ######################################################
 # Select a random sample
@@ -77,21 +69,11 @@ X = utils.normalize_2Dpointcloud_coordinates(X)
 a = a[a != -1]
 a = a / float(a.sum())  # Normalize to sum to 1
 
-# Define occlusion box
-box_center = np.array([0.5, 0.5])  # Center of the occlusion
-box_size = np.array([0.3, 0.3])  # Width and height of the occlusion box
-box_min = box_center - box_size / 2
-box_max = box_center + box_size / 2
-
-# Mask points inside the box
-mask = (X[:, 0] < box_min[0]) | (X[:, 0] > box_max[0]) | (X[:, 1] < box_min[1]) | (X[:, 1] > box_max[1])
-
-# Apply mask to X and a
-X_occluded, a_occluded = occlusion(X,a)
+# Apply circular occlusion
+X_occluded, a_occluded = occlusion_circular(X, a)
 
 # Plot before and after occlusion
 fig, ax = plt.subplots(1, 2, figsize=(10, 5))
-
 ax[0].scatter(X[:, 0], X[:, 1], s=a * 500, color='blue')
 ax[0].set_title("Original Point Cloud")
 ax[0].set_xlim(0, 1)
@@ -102,13 +84,12 @@ ax[1].set_title("Occluded Point Cloud")
 ax[1].set_xlim(0, 1)
 ax[1].set_ylim(0, 1)
 
-# Draw occlusion box
-for a in ax:
-    a.add_patch(plt.Rectangle(box_min, box_size[0], box_size[1], edgecolor='red', facecolor='none', linestyle='--', lw=2))
+# Draw occlusion circle
+circle = plt.Circle((0.5, 0.5), 0.2, edgecolor='red', facecolor='none', linestyle='--', lw=2)
+ax[0].add_patch(circle)
+ax[1].add_patch(plt.Circle((0.5, 0.5), 0.2, edgecolor='red', facecolor='none', linestyle='--', lw=2))
 
 plt.show()
-
-
 
 ## GET RANDOM TEMPLATES AND THEIR OCCLUSIONS FROM DATASET #########################################
 
@@ -152,7 +133,7 @@ for s in range(n_temp):
     matrix_temp_list.append(dist_matrix_s)
 
     # Apply occlusion to the spatial coordinates and probability measure
-    C_occluded, p_occluded = occlusion(C_s, p_s)
+    C_occluded, p_occluded = occlusion_circular(C_s, p_s)
     measure_occ_list.append(p_occluded)
 
     # Compute the distance matrix for the occluded points
@@ -186,7 +167,7 @@ points_B = mds.fit_transform(B, init=C_s)
 points_B = utils.normalize_2Dpointcloud_coordinates(points_B)
 
 ## Occluding the barycenter and compute distance matrix
-B1, b1 = occlusion(points_B, b)
+B1, b1 = occlusion_circular(points_B, b)
 dist_matrix_occ = sp.spatial.distance.cdist(B1, B1)
 
 
@@ -235,8 +216,7 @@ for i, ind in enumerate(ind_temp_list):
 # Draw occlusion box
 for a in axes:
     a.add_patch(
-        plt.Rectangle(box_min, box_size[0], box_size[1], edgecolor='red', facecolor='none', linestyle='--', lw=2))
-
+        plt.Circle((0.5, 0.5), 0.2, edgecolor='red', facecolor='none', linestyle='--', lw=2))
 plt.show()
 
 
