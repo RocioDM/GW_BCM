@@ -1,4 +1,4 @@
-## Naive classification experiment:
+## Classification experiment: "MAXIMUM COORDINATE"
 ## We randomly select templates from each class of the dataset ('k' samples per class).
 ## Given a random point from the dataset, we compute its GW-Barycentric coordinates.
 ## We classify the input into the class corresponding to the template-label with the
