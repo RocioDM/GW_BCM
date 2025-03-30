@@ -25,12 +25,13 @@ Data, label, digit_indices = utils.load_pointcloudmnist2d()
 
 ## GETTING RANDOM TEMPLATES FROM DATASET ##########################################################
 # Templates are of the form (matrix, measure)
+n_classes = 10 #Since we are working with digits 0-9
 n_temp = 2  # Number of templates for each digit
 ind_temp_list = []  # list of template indices from dataset
 measure_temp_list = []  # list of template measures
 matrix_temp_list = []  # list of template dissimilarity matrices
 
-for digit in range(10):
+for digit in range(n_classes):
     for s in range(n_temp):
         # Select a random index corresponding to the chosen digit
         ind = digit_indices[digit][np.random.randint(len(digit_indices[digit]))]

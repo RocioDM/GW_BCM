@@ -31,7 +31,9 @@ Data, label, digit_indices = utils.load_pointcloudmnist2d()
 ##Get templates: Pick one random sample point cloud for each digit.
 ## Templates (matrix, measure)
 
-k = 2   # Number of templates of each class
+n_classes = 10  # Since we are working with digits 0-9
+
+k = 3   # Number of templates of each class
 
 ## test: see which one of the 10 classes does the mass most concentrate on
 
@@ -41,7 +43,7 @@ ind_temp_list = []   #list of template indices from dataset
 measure_temp_list = []   #list of template measures
 matrix_temp_list = []   #list of template dissimilarity matrices
 
-for digit in range(10):
+for digit in range(n_classes):
     for s in range(k):
         ind = digit_indices[digit][np.random.randint(len(digit_indices[digit]))]
         ind_temp_list.append(ind)
@@ -84,7 +86,7 @@ plt.show()
 
 ##TEST
 print('Testing  in one sample of the data set:')
-print(f'As templates we are using {k} random samples of digit point-clouds from 1 to 10.')
+print(f'As templates we are using {k} random samples of digit point-clouds from 0 to 9.')
 # Select a random sample
 u = np.random.randint(0, 100)
 a = Data[u, :, 2]  # Original mass values
@@ -107,9 +109,9 @@ computed_label = np.where(lambdas == lambdas.max())[0][0]
 computed_label = computed_label // k
 print('max lambda class = ',computed_label)
 if label[u] == computed_label:
-    print('This random import is correctly classified on its digit class.')
+    print('This random input is correctly classified.')
 else:
-    print('This random import is NOT correctly classified on its digit class.')
+    print('This random input is NOT correctly classified.')
 
 
 
