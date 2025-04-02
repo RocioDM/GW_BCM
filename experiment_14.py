@@ -105,7 +105,7 @@ plt.show()
 
 # Split into training and test sets (test_size% test, (100-test_size)% training)
 #X_train, X_test, y_train, y_test = train_test_split(Data, label, test_size=0.995, random_state=42, stratify=label)
-X_train, X_test, y_train, y_test = train_test_split(Data_selected, label_selected, test_size=0.05, random_state=42, stratify=label_selected)
+X_train, X_test, y_train, y_test = train_test_split(Data_selected, label_selected, test_size=0.52, random_state=42, stratify=label_selected)
 
 
 # Initialize lists for training set
@@ -155,8 +155,9 @@ for i in range(len(train_distance_matrices)):
     # Compute lambdas using the given function
     _, lambdas = utils.get_lambdas(matrix_temp_list, measure_temp_list, B, b)
 
-    # Store the result in a row (label first, then lambda values)
-    lambda_matrix_list.append(np.concatenate(([label], lambdas)))
+    if lambdas.min()>=0.0:
+        # Store the result in a row (label first, then lambda values)
+        lambda_matrix_list.append(np.concatenate(([label], lambdas)))
 
     # Print progress every 50 iterations
     if i % 50 == 0:
@@ -173,113 +174,27 @@ labels = lambda_matrix[:,0:1].squeeze() ## First Column has the labels of the tr
 matrix = lambda_matrix[:,1:] ## The rest of the columns correspond to GW-barycentric coordinates. Each row corresponds to one training sample from the data set.
 
 
-## APPLY t-SNE ####################################################################################
-tsne = TSNE(n_components=2, perplexity=n_classes*n_temp, random_state=42)
-embedded = tsne.fit_transform(matrix)
-print('t-SNE in the barycenter coordinates, done')
+# Extract first two dimensions of matrix as coordinates
+X = matrix[:, 0]  # First dimension (x-axis)
+Y = matrix[:, 1]  # Second dimension (y-axis)
 
-# Plot the result
-plt.figure(figsize=(10, 7))
-for label in np.unique(labels):
-    plt.scatter(embedded[labels == label, 0], embedded[labels == label, 1], label=f'Class {label}', alpha=0.7, edgecolors='k')
-plt.title('t-SNE Projection into 2D')
-plt.xlabel('Component 1')
-plt.ylabel('Component 2')
-plt.legend()
+# Define colors for labels (0: blue, 1: red)
+custom_cmap = ListedColormap(["blue", "red"])
 
-plt.show()
-
-
-
-# Apply K-Means clustering
-num_clusters = n_classes  # Set the number of clusters (digits 0-9)
-kmeans = KMeans(n_clusters=num_clusters, random_state=42, n_init=10)
-predicted_labels = kmeans.fit_predict(embedded)  # Cluster assignments
-
-# True labels from the training set
-true_labels = labels
-
-# Map clusters to true labels
-mapped_labels = np.zeros_like(labels)
-
-for cluster in range(num_clusters):
-    mask = (predicted_labels == cluster)
-    if np.any(mask):  # Avoid empty clusters
-        mapped_labels[mask] = mode(true_labels[mask])[0]  # Most common true label in the cluster
-
-# Compute accuracy
-accuracy = accuracy_score(true_labels, mapped_labels)
-print(f"Overall Clustering Accuracy: {accuracy:.4f}")
-
-
-# Scatter plot of clusters
-
-
-# Use the updated Matplotlib colormap retrieval method
-colors = plt.colormaps.get_cmap("tab10").colors[:n_classes]  # Extract 'n_classes' colors from 'tab10'
-custom_cmap = ListedColormap(colors)  # Create a colormap with only 'n_classes' colors
-
-scatter = plt.scatter(embedded[:, 0], embedded[:, 1], c=predicted_labels, cmap=custom_cmap, alpha=0.7)
-plt.colorbar(scatter, ticks=range(n_classes), label="Cluster ID")
-plt.xlabel("t-SNE Dim 1")
-plt.ylabel("t-SNE Dim 2")
-plt.title("K-Means Clustering Visualization")
-plt.show()
-
-
-# Compute confusion matrix
-conf_matrix = confusion_matrix(true_labels, mapped_labels)
-
-# Plot confusion matrix
+# Create scatter plot
 plt.figure(figsize=(8, 6))
-sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues", xticklabels=range(n_classes), yticklabels=range(n_classes))
-plt.xlabel("Predicted Labels")
-plt.ylabel("True Labels")
-plt.title("Confusion Matrix for K-Means Clustering")
+scatter = plt.scatter(X, Y, c=labels, cmap=custom_cmap, alpha=0.7, edgecolors="k")
+
+# Add legend manually
+legend_labels = {0: "Class 0", 1: "Class 1"}
+handles = [plt.Line2D([0], [0], marker="o", color="w", markerfacecolor=color, markersize=8, label=legend_labels[l])
+           for l, color in zip([0, 1], ["blue", "red"])]
+plt.legend(handles=handles)
+
+# Axis labels and title
+plt.xlabel("Barycentric Coordinate 1")
+plt.ylabel("Barycentric Coordinate 2")
+plt.title("Barycentric Coordinates Scatter Plot")
+
+# Show plot
 plt.show()
-
-
-
-# Compute per-class accuracy
-class_accuracies = conf_matrix.diagonal() / conf_matrix.sum(axis=1)
-
-# Print per-class accuracy
-for class_idx, acc in enumerate(class_accuracies):
-    print(f"Accuracy for Class {class_idx}: {acc:.4f}")
-
-
-# from sklearn.cluster import DBSCAN
-#
-# # Apply DBSCAN Clustering
-# dbscan = DBSCAN(eps=2, min_samples=5)  # Adjust `eps` and `min_samples` for better results
-# predicted_labels = dbscan.fit_predict(embedded)  # Cluster assignments
-#
-# # Get unique cluster IDs
-# unique_clusters = set(predicted_labels) - {-1}  # Remove noise label (-1)
-#
-# # True labels from the dataset
-# true_labels = labels
-#
-# # Map DBSCAN clusters to true labels
-# mapped_labels = np.zeros_like(labels)
-#
-# for cluster in unique_clusters:
-#     mask = (predicted_labels == cluster)
-#     if np.any(mask):  # Avoid empty clusters
-#         mapped_labels[mask] = mode(true_labels[mask])[0]  # Most common true label in the cluster
-#
-# # Compute accuracy (excluding noise points)
-# valid_points = predicted_labels != -1  # Ignore noise points
-# accuracy = accuracy_score(true_labels[valid_points], mapped_labels[valid_points])
-#
-# print(f"DBSCAN Clustering Accuracy: {accuracy:.4f}")
-#
-# # Scatter plot of clusters
-# plt.figure(figsize=(8, 6))
-# scatter = plt.scatter(embedded[:, 0], embedded[:, 1], c=predicted_labels, cmap='tab10', alpha=0.7)
-# plt.colorbar(scatter, ticks=range(len(unique_clusters)), label="Cluster ID")
-# plt.xlabel("t-SNE Dim 1")
-# plt.ylabel("t-SNE Dim 2")
-# plt.title("DBSCAN Clustering Visualization")
-# plt.show()
-
