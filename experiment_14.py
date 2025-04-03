@@ -29,6 +29,7 @@ Data, label, digit_indices = utils.load_pointcloudmnist2d()
 
 # Select only some digits
 selected_digits = [0, 1]
+
 selected_indices = np.concatenate([digit_indices[d] for d in selected_digits])
 
 # Filter the dataset
@@ -77,7 +78,7 @@ for digit in selected_digits:
 print('Random templates, extracted')
 
 ## PLOT TEMPLATES #################################################################################
-fig, axes = plt.subplots(1, n_classes*n_temp, figsize=(15, 10))
+fig, axes = plt.subplots(1, n_classes*n_temp, figsize=(8, 5))
 axes = axes.flatten()
 
 for i, ind in enumerate(ind_temp_list):
@@ -86,11 +87,12 @@ for i, ind in enumerate(ind_temp_list):
     X = utils.normalize_2Dpointcloud_coordinates(X)
     a = a[a != -1]
     a = a / float(a.sum())
-    axes[i].scatter(X[:, 0], X[:, 1], s=a * 250)
+    axes[i].scatter(X[:, 0], X[:, 1], s=a * 350)
     #axes[i].set_title(f'Template #{i + 1}')
     axes[i].set_aspect('equal', adjustable='box')
     axes[i].set_xticks([])  # Remove x-axis ticks
     axes[i].set_yticks([])  # Remove y-axis ticks
+    axes[i].set_title(f'Template Label = {int(label[ind])}\n Coordinates {i*(0,1)+(1-i)*(1,0)} ')
 # Add figure title
 fig.suptitle("Templates", fontsize=16)
 plt.show()
@@ -105,7 +107,7 @@ plt.show()
 
 # Split into training and test sets (test_size% test, (100-test_size)% training)
 #X_train, X_test, y_train, y_test = train_test_split(Data, label, test_size=0.995, random_state=42, stratify=label)
-X_train, X_test, y_train, y_test = train_test_split(Data_selected, label_selected, test_size=0.52, random_state=42, stratify=label_selected)
+X_train, X_test, y_train, y_test = train_test_split(Data_selected, label_selected, test_size=0.9, random_state=42, stratify=label_selected)
 
 
 # Initialize lists for training set
@@ -185,16 +187,61 @@ custom_cmap = ListedColormap(["blue", "red"])
 plt.figure(figsize=(8, 6))
 scatter = plt.scatter(X, Y, c=labels, cmap=custom_cmap, alpha=0.7, edgecolors="k")
 
+## Plot the mid-point (0.5, 0.5)
+# plt.scatter(0.5, 0.5, color='white', marker='o', s=200, edgecolors='black', linewidths=2)  # Circle
+
+# Plot vertical and horizontal dashed lines passing through mid-point (0.5, 0.5)
+plt.axvline(x=0.5, color='gray', linestyle='-.', linewidth=1)  # Vertical dashed line at x=0.5
+plt.axhline(y=0.5, color='gray', linestyle='-.', linewidth=1)  # Horizontal dashed line at y=0.5
+
+
 # Add legend manually
-legend_labels = {0: "Class 0", 1: "Class 1"}
-handles = [plt.Line2D([0], [0], marker="o", color="w", markerfacecolor=color, markersize=8, label=legend_labels[l])
+legend_labels = {0: f'Class Digit {selected_digits[0]}', 1: f'Class Digit {selected_digits[1]}'}
+handles = [plt.Line2D([0], [0], marker="o", color="w", markerfacecolor=color, markersize=6, label=legend_labels[l])
            for l, color in zip([0, 1], ["blue", "red"])]
 plt.legend(handles=handles)
 
 # Axis labels and title
-plt.xlabel("Barycentric Coordinate 1")
-plt.ylabel("Barycentric Coordinate 2")
-plt.title("Barycentric Coordinates Scatter Plot")
+plt.xlabel("GW-Barycentric Coordinate 1")
+plt.ylabel("GW-Barycentric Coordinate 2")
+plt.title("GW-Barycentric Coordinates")
 
 # Show plot
+plt.show()
+
+
+## Assign predicted labels based on which value is larger
+predicted_labels = np.where(X >= Y, selected_digits[0],selected_digits[1])  # 0 if X is max, 1 if Y is max
+#print(predicted_labels)
+#print(labels)
+# Compute accuracy
+accuracy = accuracy_score(labels, predicted_labels)
+
+# Print result
+print(f"Computed Accuracy: {accuracy:.4f}")
+
+
+## Print the first samples from the data set with their GW-Barycentric coordinates
+
+n_samples_to_plot = 5
+
+# Create subplots
+fig, axes = plt.subplots(1, n_samples_to_plot, figsize=(15, 5))
+
+for idx, i in enumerate(range(n_samples_to_plot)):
+    a = X_train[i, :, 2]  # Extract the third column (weights)
+    valid_indices = np.where(a != -1)[0]  # Filter out invalid (-1) values
+    a = a[valid_indices]
+    a = a / float(a.sum())  # Normalize weights
+
+    U = X_train[i, valid_indices, :2]  # Extract 2D points
+    U = utils.normalize_2Dpointcloud_coordinates(U)  # Normalize coordinates
+
+    axes[idx].scatter(U[:, 0], U[:, 1], s=a * 350)  # Scatter plot with size based on weights
+    axes[idx].set_aspect('equal', adjustable='box')
+    axes[idx].set_xticks([])
+    axes[idx].set_yticks([])
+    axes[idx].set_title(f'Label = {int(labels[i])} \n Coordinates ({X[i]:.2f}, {Y[i]:.2f})')
+
+plt.tight_layout()
 plt.show()
