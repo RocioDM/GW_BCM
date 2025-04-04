@@ -9,6 +9,7 @@ import kagglehub
 import ot
 
 
+## MNIST POINT CLOUD ##############################################################################
 
 def load_pointcloudmnist2d():
     # Download the dataset from Kaggle and save the path
@@ -48,3 +49,12 @@ def normalize_2Dpointcloud_coordinates(C):
     C /= C.max(axis=0)
 
     return C
+
+
+
+## 3D POINT CLOUD #################################################################################
+
+def load_pointcloud3d():
+    # Download latest version
+    path = kagglehub.dataset_download("balraj98/modelnet40-princeton-3d-object-dataset")
+    return path

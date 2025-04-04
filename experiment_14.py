@@ -1,4 +1,4 @@
-##Clustering by applying t-SNE to the GW-barycentric coordinate space:
+##GW-barycentric coordinate space with two classes
 
 import numpy as np
 import matplotlib.pyplot as plt
