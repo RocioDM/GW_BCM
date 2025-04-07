@@ -1,3 +1,5 @@
+## 3D Data
+
 import matplotlib.pyplot as plt
 import numpy as np
 import trimesh
@@ -14,37 +16,6 @@ import utils
 dataset_path = utils.load_pointcloud3d()  # The path you got from kagglehub
 
 
-## EXAMPLE AND VISUALIZATION ######################################################################
-# Example category and sample file name
-category = 'airplane'  # Replace with the desired category
-sample_file = 'airplane_0236.off'  # Replace with the actual .off file
-
-# Construct the full path to the .off file
-sample_file_path = os.path.join(dataset_path, 'ModelNet40', category, 'train', sample_file)
-
-# Load the mesh using trimesh
-mesh = trimesh.load_mesh(sample_file_path)
-
-# Sample points from the mesh surface (e.g., 1000 points)
-num_points_to_sample = 1000
-sampled_points = mesh.sample(num_points_to_sample)
-
-# Plot the sampled points in 3D using Matplotlib
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.scatter(sampled_points[:, 0], sampled_points[:, 1], sampled_points[:, 2], s=1)
-
-# Set labels
-ax.set_xlabel('X')
-ax.set_ylabel('Y')
-ax.set_zlabel('Z')
-
-ax.set_axis_off()
-ax.grid(False)
-
-plt.show()
-
-
 ## GET TEMPLATES
 #number of templates
 n_temp = 3
@@ -58,7 +29,7 @@ airplane_files = [
     #'airplane_0303.off',
 ]  # Replace with the actual files in your dataset
 
-# Number of points to sample from each airplane
+# Sample points from the mesh surface (e.g., 1000 points)
 num_points_to_sample = 1000
 
 # Store the sampled points for each airplane
@@ -126,7 +97,7 @@ lambdas_list = lambdas_list/lambdas_list.sum()
 
 
 #Synthesize a Barycenter using POT
-M = 250 # Dimension of output barycentric matrix is MxM.
+M = 500 # Dimension of output barycentric matrix is MxM.
 
 b = np.ones(M) / M   # Uniform target probability vector
 # b = np.random.rand(M)
@@ -137,8 +108,11 @@ B =  ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b, lam
 
 ## Recover the vector of weights 'lambdas' by only knowing the Barycenter
 B_recon, lambdas = utils.get_lambdas(matrix_temp_list, measure_temp_list, B, b)
-print('Lambdas Error = ', np.linalg.norm(lambdas_list - lambdas, 1))
-print('lambdas = ', lambdas)
+
+## Print lambda-vectors: original, after analysis, error
+print('Original lambda-vector = ', lambdas_list)
+print('Recovered lambda-vector = ', lambdas)
+print('Error = ', np.linalg.norm(lambdas_list - lambdas, 1))
 
 
 ## VISUALIZATION
@@ -151,14 +125,14 @@ points_B_recon = mds.fit_transform(B_recon)
 
 ## PLOT
 # Create a single figure with 2 subplots (1 row, 2 columns)
-fig, axes = plt.subplots(1, 2, figsize=(12, 6), subplot_kw={'projection': '3d'})
+fig, axes = plt.subplots(1, 2, figsize=(12, 4), subplot_kw={'projection': '3d'})
 
 # First subplot: Original sampled points
 axes[0].scatter(points_B[:, 0], points_B[:, 1], points_B[:, 2], s=1)
 axes[0].set_xlabel('X')
 axes[0].set_ylabel('Y')
 axes[0].set_zlabel('Z')
-axes[0].set_title('Original Points')
+axes[0].set_title('Synthesized Barycenter')
 axes[0].set_axis_off()
 axes[0].grid(False)
 
@@ -167,7 +141,7 @@ axes[1].scatter(points_B_recon[:, 0], points_B_recon[:, 1], points_B_recon[:, 2]
 axes[1].set_xlabel('X')
 axes[1].set_ylabel('Y')
 axes[1].set_zlabel('Z')
-axes[1].set_title('Reconstructed Points')
+axes[1].set_title('Reconstructed Barycenter')
 axes[1].set_axis_off()
 axes[1].grid(False)
 
