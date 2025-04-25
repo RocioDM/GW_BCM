@@ -113,7 +113,7 @@ plt.show()
 ## GET RANDOM TEMPLATES AND THEIR OCCLUSIONS FROM DATASET #########################################
 
 # Templates are of the form (matrix, measure)
-digit = 3  # Pick a digit from 0 to 9
+digit = 8  # Pick a digit from 0 to 9
 n_temp = 3  # Number of templates
 
 ind_temp_list = []  # list of template indices from dataset
