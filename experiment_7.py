@@ -1,4 +1,4 @@
-#This notebook recovers the weights in the analysis problem of GW - barycenters and tests accuracy on pointcloud MNIST dataset.
+#This notebook recovers the weights in the analysis problem of GW - barycenters and tests accuracy on PointCloud MNIST dataset.
 
 import numpy as np  # linear algebra
 import pandas as pd  # data processing
@@ -90,7 +90,7 @@ print('Lambdas Error = ', np.linalg.norm(lambdas_list - lambdas, 1))
 
 
 
-## COMPARING POT-SYTHESIZED BARYCENTER B VS RECONSTRUCTED BARYCENTER B-RECON BY COMPUTING THE
+## COMPARING POT-SYNTHESIZED BARYCENTER B VS RECONSTRUCTED BARYCENTER B-RECON BY COMPUTING THE
 # GW-DISTANCE BETWEEN THEM ########################################################################
 gromov_distance = ot.gromov.gromov_wasserstein(B, B_recon, b, b, log=True)[1]
 gw_dist = gromov_distance['gw_dist']
@@ -122,7 +122,7 @@ for i, ind in enumerate(ind_temp_list):
     a = a[a != -1]
     a = a / float(a.sum())
     axes[i].scatter(X[:, 0], X[:, 1], s=a * 250)
-    axes[i].set_title(f'Digit #{i + 1}')
+    axes[i].set_title(f'Template #{i + 1}')
     axes[i].set_aspect('equal', adjustable='box')
     axes[i].set_xticks([])  # Remove x-axis ticks
     axes[i].set_yticks([])  # Remove y-axis ticks
