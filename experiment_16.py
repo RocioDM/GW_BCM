@@ -59,8 +59,10 @@ def occlusion_spherical(X, a, radius = 0.2):
     return X_occluded, a_occluded
 
 
+
 #number of sample points
 num_points_to_sample = 1000
+
 
 
 ## OCCLUSION FUNCTION IN ONE SAMPLE ###############################################################
@@ -87,6 +89,8 @@ ax.set_xlabel('X')
 ax.set_ylabel('Y')
 ax.set_zlabel('Z')
 
+ax.set_title(f"Input point cloud")
+
 ax.set_axis_off()
 ax.grid(False)
 
@@ -107,6 +111,8 @@ ax.scatter(X_occluded[:, 0], X_occluded[:, 1], X_occluded[:, 2], s=1)
 ax.set_xlabel('X')
 ax.set_ylabel('Y')
 ax.set_zlabel('Z')
+
+ax.set_title(f"Corrupted input point cloud")
 
 ax.set_axis_off()
 ax.grid(False)
@@ -217,7 +223,7 @@ plt.show()
 fig, axes = plt.subplots(1, 3, figsize=(15, 5), subplot_kw={'projection': '3d'})
 
 # Set the main title for the entire figure
-fig.suptitle("Templates", fontsize=16)
+fig.suptitle("Corrupted Templates", fontsize=16)
 
 # Plot each normalized airplane in a separate subplot
 for i, (ax, o_p) in enumerate(zip(axes, occluded_points[:3])):  # Use first 3 airplanes
@@ -252,6 +258,13 @@ b = np.ones(M)/M
 B_recon = ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b, lambdas)
 B_recon = (B_recon + B_recon.T) / 2  # sym
 
+## Compare Original target vs reconstruction
+original_dist_mat = sp.spatial.distance.cdist(sampled_points_example, sampled_points_example)
+N_original = len(sampled_points_example)
+original_measure = np.ones(N_original)/N_original
+gromov_distance = ot.gromov.gromov_wasserstein(original_dist_mat, B_recon, original_measure, b, log=True)[1]
+gw_dist = gromov_distance['gw_dist']
+print(f'GW(Target,Reconstructed Target): {gw_dist}')
 
 
 # Create an MDS instance
@@ -270,7 +283,110 @@ ax.set_xlabel('X')
 ax.set_ylabel('Y')
 ax.set_zlabel('Z')
 
+ax.set_title(f"Reconstructed point cloud")
+
 ax.set_axis_off()
 ax.grid(False)
 
 plt.show()
+
+
+
+
+## Now with synthetic data
+print('Repeating the experiment but for synthetic data')
+
+## Get vector of weights
+lambdas_list = np.random.rand(n_temp)
+lambdas_list = lambdas_list/lambdas_list.sum()
+
+#Synthesize a Barycenter using POT
+M = 500 # Dimension of output barycentric matrix is MxM.
+
+b = np.ones(M) / M   # Uniform target probability vector
+B =  ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b, lambdas_list)  # Synthesize barycenter matrix
+
+# convert matrix to point cloud
+points = mds.fit_transform(B_recon)
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.scatter(points[:, 0], points[:, 1], points[:, 2], s=1)
+
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Z')
+
+ax.set_title(f"Synthetic Barycenter")
+
+ax.set_axis_off()
+ax.grid(False)
+
+plt.show()
+
+
+# occlude
+# Apply occlusion to the spatial coordinates and probability measure
+B_occluded, b_occluded = occlusion_spherical(points, b)
+b_occluded = b_occluded/b_occluded.sum()
+
+# Compute the distance matrix for the occluded points
+input_matrix_occ_new = sp.spatial.distance.cdist(B_occluded, B_occluded)
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.scatter(B_occluded[:, 0], B_occluded[:, 1], B_occluded[:, 2], s=1)
+
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Z')
+
+ax.set_title(f"Synthetic Barycenter Corrupted")
+
+ax.set_axis_off()
+ax.grid(False)
+
+plt.show()
+
+
+## SOLVE ANALYSIS PROBLEM IN THE OCCLUSION WORLD ##################################################
+print('Solving the GW-analysis problem')
+_, lambdas = utils.get_lambdas(matrix_occ_list, measure_occ_list, input_matrix_occ_new, b_occluded)
+print('GW-analysis problem, solved')
+
+
+## Reconstruct
+print('Now, reconstruct by solving a GW-synthesis problem via POT pre-defined functions')
+b = np.ones(M)/M
+B_recon = ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b, lambdas)
+B_recon = (B_recon + B_recon.T) / 2  # sym
+
+## Compare Original target vs reconstruction
+gromov_distance = ot.gromov.gromov_wasserstein(B, B_recon, b, b, log=True)[1]
+gw_dist = gromov_distance['gw_dist']
+print(f'GW(Target,Reconstructed Target): {gw_dist}')
+
+## Fit and transform the distance matrix of B_recon
+points_recon = mds.fit_transform(B_recon)
+
+## Plot
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.scatter(points_recon[:, 0], points_recon[:, 1], points_recon[:, 2], s=1)
+
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Z')
+
+ax.set_title(f"Synthetic Barycenter Recovered")
+
+ax.set_axis_off()
+ax.grid(False)
+
+plt.show()
+
+## Print lambda-vectors: original, after analysis, error
+print('Original lambda-vector = ', lambdas_list)
+print('Recovered lambda-vector = ', lambdas)
+print('Error = ', np.linalg.norm(lambdas_list - lambdas, 1))

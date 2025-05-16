@@ -4,5 +4,8 @@ from .dataset_manager import load_pointcloud3d
 
 
 from .gw_analysis import get_lambdas
+from .gw_analysis import get_lambdas_no_constraint
 from .gw_analysis import get_lambdas2
 from .gw_analysis import get_lambdas3
+
+from .gw_analysis import get_lambdas_blowup

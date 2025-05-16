@@ -1,7 +1,7 @@
 ## Analysis Problem of GW barycenter for Point Clouds Corruption (Occlusion)
 ## This notebook recovers the weights in the analysis problem of
 ## GW - barycenters from an occluded sample and occluded templates
-## and recover the sample using the recovered weights and non-occluded templates.
+## and recovers the sample using the estimated weights and non-occluded templates.
 ## The input sample is taken in the Barycenter space of the non-occluded templates and then
 ## corrupted under occlusion (rectangular mask).
 

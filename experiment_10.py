@@ -28,7 +28,7 @@ Data, label, digit_indices = utils.load_pointcloudmnist2d()
 
 
 # Select only some digits
-selected_digits = [0, 1]
+selected_digits = [0,4]
 selected_indices = np.concatenate([digit_indices[d] for d in selected_digits])
 
 # Filter the dataset
@@ -39,7 +39,7 @@ label_selected = label[selected_indices]
 ## GETTING RANDOM TEMPLATES FROM DATASET ##########################################################
 # Templates are of the form (matrix, measure)
 n_classes = len(selected_digits)
-n_temp = 1  # Number of templates for each digit
+n_temp = 6  # Number of templates for each digit
 ind_temp_list = []  # list of template indices from dataset
 measure_temp_list = []  # list of template measures
 matrix_temp_list = []  # list of template dissimilarity matrices
@@ -77,7 +77,7 @@ for digit in selected_digits:
 print('Random templates, extracted')
 
 ## PLOT TEMPLATES #################################################################################
-fig, axes = plt.subplots(1, n_classes*n_temp, figsize=(15, 10))
+fig, axes = plt.subplots(1, n_classes*n_temp, figsize=(8, 4))
 axes = axes.flatten()
 
 for i, ind in enumerate(ind_temp_list):
@@ -93,6 +93,8 @@ for i, ind in enumerate(ind_temp_list):
     axes[i].set_yticks([])  # Remove y-axis ticks
 # Add figure title
 fig.suptitle("Templates", fontsize=16)
+plt.tight_layout()
+plt.savefig("templates.pdf", bbox_inches='tight')
 plt.show()
 
 
@@ -186,7 +188,8 @@ plt.title('t-SNE Projection into 2D')
 plt.xlabel('Component 1')
 plt.ylabel('Component 2')
 plt.legend()
-
+plt.tight_layout()
+plt.savefig("tsne.pdf", bbox_inches='tight')
 plt.show()
 
 
@@ -224,6 +227,8 @@ plt.colorbar(scatter, ticks=range(n_classes), label="Cluster ID")
 plt.xlabel("t-SNE Dim 1")
 plt.ylabel("t-SNE Dim 2")
 plt.title("K-Means Clustering Visualization")
+plt.tight_layout()
+plt.savefig("KMeans.pdf", bbox_inches='tight')
 plt.show()
 
 
@@ -236,6 +241,8 @@ sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues", xticklabels=range(n_
 plt.xlabel("Predicted Labels")
 plt.ylabel("True Labels")
 plt.title("Confusion Matrix for K-Means Clustering")
+plt.tight_layout()
+plt.savefig("confusion_matrix.pdf", bbox_inches='tight')
 plt.show()
 
 

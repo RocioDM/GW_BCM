@@ -1,4 +1,5 @@
-#This notebook recovers the weights in the analysis problem of GW - barycenters and tests accuracy on PointCloud MNIST dataset.
+# This notebook recovers the weights in the analysis problem of GW - barycenters
+# and tests accuracy on PointCloud MNIST dataset.
 
 import numpy as np  # linear algebra
 import pandas as pd  # data processing
