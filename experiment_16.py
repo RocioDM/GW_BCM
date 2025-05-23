@@ -61,11 +61,13 @@ def occlusion_spherical(X, a, radius = 0.2):
 
 
 #number of sample points
-num_points_to_sample = 1000
+num_points_to_sample = 500
 
 
 
 ## OCCLUSION FUNCTION IN ONE SAMPLE ###############################################################
+print('First, let us visualize corruption of a 3D point cloud due to occlusion')
+
 # Example category and sample file name
 category = 'airplane'  # Replace with the desired category
 sample_file = 'airplane_0236.off'  # Replace with the actual .off file
@@ -124,11 +126,15 @@ input_matrix_occ = sp.spatial.distance.cdist(X_occluded, X_occluded)
 
 
 
+print('In this experiment, we will reconstruct its perturbed version')
+
 
 ## GET TEMPLATES ##################################################################################
+print('Get templates and their perturbations via occlusion')
 
 #number of templates
 n_temp = 3
+
 # List of 5 different airplane sample files
 airplane_files = [
     'airplane_0236.off',
@@ -253,7 +259,7 @@ print('GW-analysis problem, solved')
 
 ## Reconstruct
 print('Now, reconstruct by solving a GW-synthesis problem via POT pre-defined functions')
-M = 500
+M = 300
 b = np.ones(M)/M
 B_recon = ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b, lambdas)
 B_recon = (B_recon + B_recon.T) / 2  # sym
@@ -297,11 +303,13 @@ plt.show()
 print('Repeating the experiment but for synthetic data')
 
 ## Get vector of weights
-lambdas_list = np.random.rand(n_temp)
-lambdas_list = lambdas_list/lambdas_list.sum()
+#lambdas_list = np.random.rand(n_temp)
+#lambdas_list = lambdas_list/lambdas_list.sum()
+lambdas_list =  np.random.dirichlet(np.ones(n_temp), size=1)[0]
+
 
 #Synthesize a Barycenter using POT
-M = 500 # Dimension of output barycentric matrix is MxM.
+M = 300 # Dimension of output barycentric matrix is MxM.
 
 b = np.ones(M) / M   # Uniform target probability vector
 B =  ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b, lambdas_list)  # Synthesize barycenter matrix
@@ -389,4 +397,4 @@ plt.show()
 ## Print lambda-vectors: original, after analysis, error
 print('Original lambda-vector = ', lambdas_list)
 print('Recovered lambda-vector = ', lambdas)
-print('Error = ', np.linalg.norm(lambdas_list - lambdas, 1))
+print('Lambdas Error = ', np.linalg.norm(lambdas_list - lambdas, 1))

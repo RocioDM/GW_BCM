@@ -7,7 +7,7 @@
 ## using the references from each class SEPARATELY. (Analysis)
 ## Synthesize the corresponding GW-barycenters
 ## for the different barycenter coordinates obtained before and the respective templates.
-## Compute GW-distances between input and the synthesize GW-barycenters.
+## Compute GW-distances between input and synthesize GW-barycenters.
 ## Select the class with the minimum GW-distance between input
 ## Compute accuracy between the true labels and the predicted ones.
 

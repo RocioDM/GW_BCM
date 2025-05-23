@@ -1,127 +1,87 @@
 import numpy as np
-import ot
+import ot  # POT: Python Optimal Transport library
+
+from utils import get_lambdas  # User-defined function for analysis step (fixed-point approach)
 
 
+# Generate a random symmetric matrix of shape MxM with zeros on the diagonal
 def get_input(M):
+    '''
+    :param M: size of the output matrix
+    :return: symmetric matrix with zero diagonal
+    '''
     D = np.random.rand(M, M)
-    D = D.T + D
-    np.fill_diagonal(D, 0)
+    D = D.T + D  # Make it symmetric
+    np.fill_diagonal(D, 0)  # Distance matrix has 0 diagonal
     return D
 
-def get_template(s):
-    N = 7
-    C = np.random.rand(N,N)
+
+# Generate a random symmetric "template" distance matrix and a uniform probability distribution
+def get_template(N=7):
+    '''
+    :param N: size of the template matrix (NxN) and probability vector (N)
+    :return: symmetric matrix with zero diagonal (C) and probability vector (p)
+    '''
+    C = np.random.rand(N, N)
     C = C.T + C
     np.fill_diagonal(C, 0)
-    p = np.ones(C.shape[0]) / C.shape[0]
+    p = np.ones(C.shape[0]) / C.shape[0]  # Uniform distribution
     return C, p
 
-def main(i):
-    np.random.seed(i)
-    S = 5 # Number of templates or vertices
-    M = 6 # Dimension of input and output matrices is  MxM.
 
+def main(i, S=5, M=6):
+    """
+    Perform one trial of synthesis and analysis of a GW-barycenter.
+    :param i: Random seed
+    :param S: Number of templates (vertices)
+    :param M: Dimension of input and output distance matrices (MxM)
+    """
+    np.random.seed(i)  # Reproducibility
 
-
-    p_list = []
-    C_list = []
+    # Generate Templates
+    p_list = []  # List of distributions for each template
+    C_list = []  # List of distance matrices (templates)
 
     for s in range(S):
-        C_s, p_s = get_template(s)
+        C_s, p_s = get_template(N=np.random.randint(5, 10)) #templates with different sizes
         p_list.append(p_s)
         C_list.append(C_s)
 
-    #D = get_input(M)
-    lambdas_list = np.random.rand(S)
-    lambdas_list = lambdas_list/lambdas_list.sum()
+    # Sample a random lambda (weights for the templates) and normalize to lie in simplex
+    #lambdas_list = np.random.rand(S)
+    #lambdas_list = lambdas_list / lambdas_list.sum()
+    #lambdas_list = np.ones(S)/S   # (uniform)
+    lambdas_list = np.random.dirichlet(np.ones(S), size=1)[0]
+
+    # Define uniform distribution over target points
     q = np.ones(M) / M
-    D =  ot.gromov.gromov_barycenters(M, C_list, p_list,q, lambdas_list)
+
+    # Synthesize GW-barycenter based on random lambda
+    D = ot.gromov.gromov_barycenters(M, C_list, p_list, q, lambdas_list)
+
+    # Run analysis step: recover lambda weights from the synthesized barycenter
+    D_recon, lambdas = get_lambdas(C_list, p_list, D, q) #fixed-point approach
+
+    ## Print lambda-vectors: original, recovered, and the L1 error between them
+    print('Original lambda-vector = ', lambdas_list)
+    print('Recovered lambda-vector (Fixed-Point approach) = ', lambdas)
+    print('Lambdas Error = ', np.linalg.norm(lambdas_list - lambdas, 1))
+
+    ## Compare original barycenter vs. reconstruction using GW distance
+    gromov_distance = ot.gromov.gromov_wasserstein(D, D_recon, q, q, log=True)[1]
+    gw_dist = gromov_distance['gw_dist']
+    print(f'GW(Original, Reconstruction): {abs(gw_dist)}')
+
+    return
 
 
-
-    pi_list = []
-    F_list = []
-    Q = (q.reshape(-1,1) @ q.reshape(1,-1))
-    Q = 1. / Q
-
-    for s in range(S):
-        pi_s = ot.gromov.gromov_wasserstein(C_list[s],D,p_list[s],q)
-        pi_list.append(pi_s)
-        F_s = Q * (pi_s.T @ C_list[s] @ pi_s)
-        F_list.append(F_s)
-
-    print(f'F_list: {F_list[1]}')
-
-    '''
-    K = np.zeros((S,S))
-    b = np.zeros(S)
-    for i in range(S):
-        b[i] = np.trace(D @ F_list[i])
-        for j in range(S):
-            K[i,j] = np.trace(F_list[i] @ F_list[j])
-
-    lambdas = np.linalg.solve(K, b)
-    print(lambdas.sum())
-    '''
-
-
-    K = np.zeros((S,S))
-    b = np.zeros(S)
-    for i in range(S):
-        b[i] = np.trace(D @ F_list[i])
-        for j in range(S):
-            K[i,j] = np.trace(F_list[i] @ F_list[j])
-
-    K_aug = np.hstack([K, -0.5 * np.ones(S).reshape(-1,1)])
-    last_row = np.ones(K_aug.shape[1]).reshape(1,-1)
-    last_row[0,-1] = 0
-    K_aug = np.vstack([K_aug,last_row])
-
-    b_aug = np.hstack([b, [1]])
-    #print(b_aug)
-    #print(K_aug)
-
-    lambdas = np.linalg.solve(K_aug, b_aug)
-    #print(f'Lambdas: {lambdas}')
-    #print(lambdas[0:-1].sum())
-
-    lambda_indices = [lambdas[0:-1] < 0]
-    #print(f'lambdas list: {lambdas_list}')
-    #print(f'lambdas computed: {lambdas}')
-    print(np.linalg.norm(lambdas_list - lambdas[0:-1]))
-
-
-    # Reconstruct D_lamba_list barra
-    D_recon = np.zeros_like(D)
-    for s in range(S):
-        D_recon += lambdas[s] * F_list[s]
-
-    # Compare D vs D_barra
-    print(f'D max:{abs(D).max()}')
-    print(f'D-D_recon: {abs((D-D_recon)).max()}')
-    print(f'D: {D}')
-    print(f'D_recon: {D_recon}')
-
-
-    return lambdas[0:-1].min()
-
-
-
-
-
-
-
-    print('ready')
-
-
-
+# Run a series of experiments to test the analysis algorithm
 if __name__ == '__main__':
     '''
-        This code checks if $\overline{D_\lambda} = D_\lambda$. Which was proven in the overleaf. 
-        The experiments coincide with the theory. 
+    This script checks the performance of the analysis algorithm 
+    using our function get_lambdas from the fix point approach.
+    It check whether the recover lambdas coincide with the originals and 
+    whether the recovered barycenter from analysis matches the one from synthesis
     '''
-    for i in range(0,1):
-        if main(i)>=0:
-            print(i)
-    #Good seeds = [13,15,21,29]
-
+    for i in range(10):
+        main(i)

@@ -2,10 +2,8 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-
-import scipy as sp
 from sklearn.manifold import MDS
-from sklearn.manifold import smacof
+
 
 import os
 import itertools

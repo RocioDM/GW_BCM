@@ -110,7 +110,7 @@ B =  ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b, lam
 print('Solving the GW-analysis problem')
 ## Recover the vector of weights 'lambdas' by only knowing the Barycenter
 #B_recon, lambdas = utils.get_lambdas(matrix_temp_list, measure_temp_list, B, b)
-B_recon, lambdas = utils.get_lambdas_no_constraint(matrix_temp_list, measure_temp_list, B, b)
+B_recon, lambdas = utils.get_lambdas(matrix_temp_list, measure_temp_list, B, b)
 
 ## Print lambda-vectors: original, after analysis, error
 print('Original lambda-vector = ', lambdas_list)

@@ -32,8 +32,8 @@ airplane_files = [
 ]  # Replace with the actual files in your dataset
 
 # Bounds for sample points from the mesh surface (e.g., 1000 points)
-l_bound = 1000
-u_bound = 1000
+l_bound = 500
+u_bound = 500
 
 # Store the sampled points for each airplane
 sampled_airplanes = []
@@ -105,7 +105,7 @@ lambdas_list = np.array([1/3,1/3,1/3])
 
 #Synthesize a Barycenter using POT
 print('Synthesizing a GW Barycenter using the POT Library')
-M = 1000 # Dimension of output barycentric matrix is MxM.
+M = 250 # Dimension of output barycentric matrix is MxM.
 
 b = np.ones(M) / M   # Uniform target probability vector
 b0 = b.copy()
@@ -122,41 +122,8 @@ mds = MDS(n_components=3, dissimilarity='precomputed', random_state=42)
 points_B = mds.fit_transform(B0)
 
 
-### BLOW UP
-temp_blow_up = []
-for i in range(n_temp):
-    X = matrix_temp_list[i]
-    p = measure_temp_list[i]
+B, b, temp_blow_up = utils.blow_up(matrix_temp_list, measure_temp_list, B, b)
 
-    pi = ot.gromov.gromov_wasserstein(X, B, p, b)
-
-    row_indices, col_indices = np.nonzero(pi)
-
-    # Combine row and column indices into coordinate pairs
-    non_zero_coords = np.array(list(zip(row_indices, col_indices)))
-    v_x = non_zero_coords[:, 0]
-    v_y = non_zero_coords[:, 1]
-    #print('size of blow up: ', len(v_x))
-
-    b = pi[v_x, v_y]
-
-    V_1, V_2 = np.meshgrid(v_y, v_y)
-    B_tilde = B[V_1, V_2]
-    B = B_tilde.copy()
-
-    A_1, A_2 = np.meshgrid(v_x, v_x)
-    X_tilde = X[A_1, A_2]
-    X = X_tilde.copy()
-
-    temp_blow_up.append(X)
-
-    for j in range(i):
-        Z = temp_blow_up[j].copy()
-        temp_blow_up[j] = Z[V_1,V_2]
-
-# for j in temp_blow_up:
-#     print(j.shape)
-# print(B.shape)
 print('size of the blow-up: ', B.shape[0])
 
 points_B_blowup = mds.fit_transform(B)

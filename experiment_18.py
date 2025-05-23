@@ -5,7 +5,6 @@ import numpy as np
 import trimesh
 import os
 import scipy as sp
-from sklearn.manifold import MDS
 
 import ot
 
@@ -24,7 +23,7 @@ n_temp = 3
 airplane_files = [
     'airplane_0236.off',
     'airplane_0435.off',
-    #'airplane_0215.off',
+    'airplane_0215.off'
     #'airplane_0162.off',
     #'airplane_0303.off',
 ]  # Replace with the actual files in your dataset

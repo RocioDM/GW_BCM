@@ -57,6 +57,7 @@ def occlusion_circular(X, a):
 Data, label, digit_indices = utils.load_pointcloudmnist2d()
 
 ## TEST THE OCCLUSION FUNCTION IN ONE SAMPLE ######################################################
+print(f'First, you will visualize a simulated occlusion of a portion of a point cloud')
 # Select a random sample
 u = np.random.randint(0, 100)
 a = Data[u, :, 2]  # Original mass values
@@ -92,6 +93,8 @@ ax[1].add_patch(plt.Circle((0.5, 0.5), 0.2, edgecolor='red', facecolor='none', l
 plt.show()
 
 ## GET RANDOM TEMPLATES AND THEIR OCCLUSIONS FROM DATASET #########################################
+
+print('Selecting random templates and simulating their occlusions')
 
 # Templates are of the form (matrix, measure)
 digit = 3  # Pick a digit from 0 to 9
@@ -140,12 +143,13 @@ for s in range(n_temp):
     dist_matrix_occ = sp.spatial.distance.cdist(C_occluded, C_occluded)
     matrix_occ_list.append(dist_matrix_occ)
 
-
+print('Synthesizing a GW-barycenter using POT and perturbing it by occlusion')
 
 ## GENERATE A RANDOM VECTOR OF WEIGHTS, SYNTHESIZING A BARYCENTER USING POT AND ITS OCCLUSION #####
 # Random vector of weights
-lambdas_list = np.random.rand(n_temp)
-lambdas_list = lambdas_list / lambdas_list.sum()
+# lambdas_list = np.random.rand(n_temp)
+# lambdas_list = lambdas_list / lambdas_list.sum()
+lambdas_list = np.random.dirichlet(np.ones(n_temp), size=1)[0]
 
 # Create an MDS instance
 mds = MDS(n_components=2, dissimilarity='precomputed', random_state=42)
@@ -173,14 +177,20 @@ dist_matrix_occ = sp.spatial.distance.cdist(B1, B1)
 
 
 
+
 ## RECOVER VECTOR OF WEIGHTS FROM OCCLUDED SYNTHESIZED BARYCENTER USING utils.get_lambdas FUNCTION,
 #  RECONSTRUCTED BARYCENTER B_RECON USING POT AND NON-OCCLUDED TEMPLATES, AND COMPUTE ERRORS ######
+
+print('Estimating the vector lambda from the perturbed input with perturbed templates')
+
 _, lambdas = utils.get_lambdas(matrix_occ_list, measure_occ_list, dist_matrix_occ, b1)
 
+
+
+print('Reconstruction of the input from the estimated lambda vector and using unperturbed templates (using POT for synthesis)')
 B_recon = ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b, lambdas)
 B_recon = (B_recon + B_recon.T) / 2  # sym
 
-print('Lambdas Error = ', np.linalg.norm(lambdas_list - lambdas, 1))
 
 ## Compare Original target vs reconstruction
 gromov_distance = ot.gromov.gromov_wasserstein(B, B_recon, b, b, log=True)[1]
@@ -205,7 +215,7 @@ for i, ind in enumerate(ind_temp_list):
     a = a[a != -1]
     a = a / float(a.sum())
     axes[i].scatter(X[:, 0], X[:, 1], s=a * 500)
-    axes[i].set_title(f'Template #{i + 1}')
+    axes[i].set_title(f'Template {i + 1}')
     axes[i].set_aspect('equal', adjustable='box')
     axes[i].set_xticks([])  # Remove x-axis ticks
     axes[i].set_yticks([])  # Remove y-axis ticks
@@ -220,9 +230,14 @@ for a in axes:
 plt.show()
 
 
+U = ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b,
+                                 np.random.dirichlet(np.ones(n_temp), size=1)[0])
+U = mds.fit_transform(U)
+U = utils.normalize_2Dpointcloud_coordinates(U)
+
 
 ## PLOT Synthesized Barycenter (B) AND Reconstructed Barycenter (B_RECON) #########################
-fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+fig, axes = plt.subplots(1, 4, figsize=(12, 4))
 
 axes[0].scatter(points_B[:, 0], points_B[:, 1], s=b * 500)
 axes[0].set_title('Input Barycenter')
@@ -238,5 +253,10 @@ axes[2].scatter(points_B_recon[:, 0], points_B_recon[:, 1], s=b * 500)
 axes[2].set_title('Reconstructed Barycenter')
 axes[2].set_xticks([])  # Remove x-axis ticks
 axes[2].set_yticks([])  # Remove y-axis ticks
+
+axes[3].scatter(U[:, 0], U[:, 1], s=b * 350)
+axes[3].set_title('Random Reconstruction')
+axes[3].set_xticks([])  # Remove x-axis ticks
+axes[3].set_yticks([])  # Remove y-axis ticks
 
 plt.show()
