@@ -1,11 +1,15 @@
-## 3D Data + blow-up
+## 3D Data
+## This notebook recovers the weights in the analysis problem of GW-barycenters
+## and visualizes them.
+## GW-Barycenters are synthesized via POT and as convex combinations of the blow-up templates
+## We use the functions "get_lambdas", "blow_up" and "get_lambdas_blowup" from "utils"
+
 
 import matplotlib.pyplot as plt
 import numpy as np
 import trimesh
 import os
 import scipy as sp
-from sklearn.manifold import MDS
 import random
 
 import ot
@@ -29,33 +33,28 @@ airplane_files = [
     'airplane_0215.off',
 ]
 
-## Bounds for sample points from the mesh surface
-# l_bound = 200
-# u_bound = 500
-
-# List of desired number of samples for each airplane
-sample_sizes = [200, 200, 200]
+# Bounds for sample points from the mesh surface
+l_bound = 200
+u_bound = 500
 
 
 # Store the sampled points for each airplane
-sampled_airplanes = []
+sampled_data = []
 # list of dissimilarity matrices
 matrix_temp_list = []
 # list of measures
 measure_temp_list = []
 
 ## Loop through each airplane file and sample points
-#for airplane_file in airplane_files:
-for airplane_file, num_points_to_sample in zip(airplane_files, sample_sizes):
+for airplane_file in airplane_files:
     # Construct the full path to the .off file
     sample_file_path = os.path.join(dataset_path, 'ModelNet40', 'airplane', 'train', airplane_file)
 
     # Load the mesh using trimesh
     mesh = trimesh.load_mesh(sample_file_path)
 
-    ##Random number of samples
-    #num_points_to_sample = random.randint(l_bound, u_bound)
-
+    #Random number of samples
+    num_points_to_sample = random.randint(l_bound, u_bound)
     # Sample points from the mesh surface
     sampled_points = mesh.sample(num_points_to_sample)
 
@@ -65,7 +64,7 @@ for airplane_file, num_points_to_sample in zip(airplane_files, sample_sizes):
     normalized_points = (sampled_points - min_vals) / (max_vals - min_vals)
 
     # Append the normalized points to the list
-    sampled_airplanes.append(normalized_points)
+    sampled_data.append(normalized_points)
 
     # Dissimilarity matrices
     dist_matrix = sp.spatial.distance.cdist(normalized_points, normalized_points)
@@ -81,31 +80,18 @@ for airplane_file, num_points_to_sample in zip(airplane_files, sample_sizes):
 
 n_experiments = 10
 
-T = np.array([[-1,0],[0,3**(1/2)],[1,0]])
-
-color = [
-    "#1f77b4",  # blue
-    "#ff7f0e"  # orange
-    "#2ca02c",  # green
-    "#d62728",  # red
-    "#9467bd",  # purple
-    "#8c564b",  # brown
-    "#e377c2",  # pink
-    "#7f7f7f",  # gray
-    "#bcbd22",  # yellow-green
-    "#17becf"   # cyan
-]
 
 
 lambdas_list = np.random.dirichlet([1,1,1],n_experiments)
+
 recovered_lambdas_list_fp = np.zeros_like(lambdas_list)
 recovered_lambdas_list_bu = np.zeros_like(lambdas_list)
 
 
-## Experiments with synthesized barycenters via POT
+## Experiments with synthesized barycenters via POT ###############################################
 print('Starting experiments with synthesized barycenters via POT')
 
-M = 200  # Dimension of output barycentric matrix is MxM.
+M = 300  # Dimension of output barycentric matrix is MxM.
 b = np.ones(M) / M  # Uniform target probability vector
 
 for i in range(n_experiments):
@@ -121,63 +107,14 @@ for i in range(n_experiments):
     _, lambdas_blow_up = utils.get_lambdas_blowup(temp_blow_up, B_bu, b_bu)
     recovered_lambdas_list_bu[i] = lambdas_blow_up
 
-## PLOT
-
-# for the triangle
-x = [-1, 0, 1, -1]
-y = [0, np.sqrt(3), 0, 0]
-
-# Create a figure with two subplots in one row
-fig, axes = plt.subplots(1, 2, figsize=(12, 6))
-
-# Plot for recovered_lambdas_list_fp
-for i in range(n_experiments):
-    original_lambda = lambdas_list[i].reshape(3, 1)
-    recovered_lambda_fp = recovered_lambdas_list_fp[i].reshape(3, 1)
-
-    original_point = (original_lambda * T).sum(axis=0)
-    recovered_point_fp = (recovered_lambda_fp * T).sum(axis=0)
-
-    axes[0].scatter(original_point[0], original_point[1], c='b')
-    axes[0].scatter(recovered_point_fp[0], recovered_point_fp[1], c='r', marker='x')
-
-axes[0].plot(x, y, 'b-', linewidth=1)
-axes[0].fill(x[:-1], y[:-1], 'skyblue', alpha=0)
-axes[0].set_xlim(-1.2, 1.2)
-axes[0].set_ylim(-0.2, np.sqrt(3) + 0.2)
-axes[0].axis('off')
-axes[0].set_aspect('equal')
-axes[0].set_title('Fixed Point Method')
-
-# Plot for recovered_lambdas_list_bu
-for i in range(n_experiments):
-    original_lambda = lambdas_list[i].reshape(3, 1)
-    recovered_lambda_bu = recovered_lambdas_list_bu[i].reshape(3, 1)
-
-    original_point = (original_lambda * T).sum(axis=0)
-    recovered_point_bu = (recovered_lambda_bu * T).sum(axis=0)
-
-    axes[1].scatter(original_point[0], original_point[1], c='b')
-    axes[1].scatter(recovered_point_bu[0], recovered_point_bu[1], c='r', marker='x')
-
-# Plot the triangle for the second plot
-axes[1].plot(x, y, 'b-', linewidth=1)
-axes[1].fill(x[:-1], y[:-1], 'skyblue', alpha=0)
-axes[1].set_xlim(-1.2, 1.2)
-axes[1].set_ylim(-0.2, np.sqrt(3) + 0.2)
-axes[1].axis('off')
-axes[1].set_aspect('equal')
-axes[1].set_title('Gradient Method via Blow-up')
-
-plt.tight_layout()
-plt.show()
 
 
-## Experiments with synthesized barycenters via blow-up
+
+## Experiments with synthesized barycenters via blow-up ###########################################
 print('Starting experiments with synthesized barycenters via blow-up')
 
-recovered_lambdas_list_fp = np.zeros_like(lambdas_list)
-recovered_lambdas_list_bu = np.zeros_like(lambdas_list)
+recovered_lambdas_list_fp2 = np.zeros_like(lambdas_list)
+recovered_lambdas_list_bu2 = np.zeros_like(lambdas_list)
 
 _, measure_a, temp_blow_up_a = utils.blow_up(matrix_temp_list, measure_temp_list, matrix_temp_list[1], measure_temp_list[1])
 
@@ -191,60 +128,71 @@ for i in range(n_experiments):
 
     print(f'Solving the GW-analysis problem from fixed point approach for experiment {i+1}')
     _, lambdas_fix_point = utils.get_lambdas(matrix_temp_list, measure_temp_list, B, measure_a)
-    recovered_lambdas_list_fp[i] = lambdas_fix_point
+    recovered_lambdas_list_fp2[i] = lambdas_fix_point
 
     print(f'Solving the GW-analysis problem from gradient approach for experiment {i+1}')
     #B_bu, b_bu, temp_blow_up = utils.blow_up(matrix_temp_list, measure_temp_list, B, b)
     _, lambdas_blow_up = utils.get_lambdas_blowup(temp_blow_up_a, B, measure_a)
-    recovered_lambdas_list_bu[i] = lambdas_blow_up
+    recovered_lambdas_list_bu2[i] = lambdas_blow_up
 
-## PLOT
+
+
+
+## PLOT ###########################################################################################
 
 # for the triangle
+T = np.array([[-1,0],[0,3**(1/2)],[1,0]])
 x = [-1, 0, 1, -1]
 y = [0, np.sqrt(3), 0, 0]
 
-# Create a figure with two subplots in one row
-fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+fig, axes = plt.subplots(2, 2, figsize=(16, 16), gridspec_kw={'hspace': 0.35})
 
-# Plot for recovered_lambdas_list_fp
+fig.suptitle("Synthesized GW-Barycenter via POT", fontsize=16, y=0.97)
+fig.text(0.5, 0.525, "Synthesized GW-Barycenter via Combinations of Blow-up Templates",
+         ha='center', va='top', fontsize=16)
+
 for i in range(n_experiments):
     original_lambda = lambdas_list[i].reshape(3, 1)
+    original_point = (original_lambda * T).sum(axis=0)
+
     recovered_lambda_fp = recovered_lambdas_list_fp[i].reshape(3, 1)
-
-    original_point = (original_lambda * T).sum(axis=0)
     recovered_point_fp = (recovered_lambda_fp * T).sum(axis=0)
+    axes[0, 0].scatter(original_point[0], original_point[1], c='b')
+    axes[0, 0].scatter(recovered_point_fp[0], recovered_point_fp[1], c='r', marker='x')
 
-    axes[0].scatter(original_point[0], original_point[1], c='b')
-    axes[0].scatter(recovered_point_fp[0], recovered_point_fp[1], c='r', marker='x')
-
-axes[0].plot(x, y, 'b-', linewidth=1)
-axes[0].fill(x[:-1], y[:-1], 'skyblue', alpha=0)
-axes[0].set_xlim(-1.2, 1.2)
-axes[0].set_ylim(-0.2, np.sqrt(3) + 0.2)
-axes[0].axis('off')
-axes[0].set_aspect('equal')
-axes[0].set_title('Fixed Point Method')
-
-# Plot for recovered_lambdas_list_bu
-for i in range(n_experiments):
-    original_lambda = lambdas_list[i].reshape(3, 1)
     recovered_lambda_bu = recovered_lambdas_list_bu[i].reshape(3, 1)
-
-    original_point = (original_lambda * T).sum(axis=0)
     recovered_point_bu = (recovered_lambda_bu * T).sum(axis=0)
+    axes[0, 1].scatter(original_point[0], original_point[1], c='b')
+    axes[0, 1].scatter(recovered_point_bu[0], recovered_point_bu[1], c='r', marker='x')
 
-    axes[1].scatter(original_point[0], original_point[1], c='b')
-    axes[1].scatter(recovered_point_bu[0], recovered_point_bu[1], c='r', marker='x')
+    recovered_lambda_fp2 = recovered_lambdas_list_fp2[i].reshape(3, 1)
+    recovered_point_fp2 = (recovered_lambda_fp2 * T).sum(axis=0)
+    axes[1, 0].scatter(original_point[0], original_point[1], c='b')
+    axes[1, 0].scatter(recovered_point_fp2[0], recovered_point_fp2[1], c='r', marker='x')
 
-# Plot the triangle for the second plot
-axes[1].plot(x, y, 'b-', linewidth=1)
-axes[1].fill(x[:-1], y[:-1], 'skyblue', alpha=0)
-axes[1].set_xlim(-1.2, 1.2)
-axes[1].set_ylim(-0.2, np.sqrt(3) + 0.2)
-axes[1].axis('off')
-axes[1].set_aspect('equal')
-axes[1].set_title('Gradient Method via Blow-up')
+    recovered_lambda_bu2 = recovered_lambdas_list_bu2[i].reshape(3, 1)
+    recovered_point_bu2 = (recovered_lambda_bu2 * T).sum(axis=0)
+    axes[1, 1].scatter(original_point[0], original_point[1], c='b')
+    axes[1, 1].scatter(recovered_point_bu2[0], recovered_point_bu2[1], c='r', marker='x')
 
-plt.tight_layout()
+# Formatting plots
+for ax_row in axes:
+    for ax in ax_row:
+        ax.plot(x, y, 'b-', linewidth=1)
+        ax.fill(x[:-1], y[:-1], 'skyblue', alpha=0)
+        ax.set_xlim(-1.2, 1.2)
+        ax.set_ylim(-0.2, np.sqrt(3) + 0.2)
+        ax.axis('off')
+        ax.set_aspect('equal')
+
+axes[0, 0].set_title('Fixed Point Approach')
+axes[0, 1].set_title('Gradient Approach via Blow-up')
+axes[1, 0].set_title('Fixed Point Approach')
+axes[1, 1].set_title('Gradient Approach via Blow-up')
+
+plt.tight_layout(rect=[0, 0, 1, 0.91])
+
+# Save as PDF
+plt.savefig("visualization_gw_barycenters_weights_analysis.pdf", format='pdf', bbox_inches='tight')
+
 plt.show()

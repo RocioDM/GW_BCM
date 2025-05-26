@@ -1,11 +1,12 @@
-# This notebook recovers the weights in the analysis problem of GW - barycenters
-# and tests accuracy on PointCloud MNIST dataset.
+## This notebook recovers the weights in the analysis problem of GW-barycenters
+## and tests accuracy on PointCloud MNIST dataset (2D).
+## In this notebook we use the function "get_lambdas" from "utils" (Fix-Point approach)
 
-import numpy as np  # linear algebra
+import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
 from sklearn.manifold import MDS
-import ot
+import ot   # POT: Python Optimal Transport library
 
 
 
@@ -26,7 +27,7 @@ Data, label, digit_indices = utils.load_pointcloudmnist2d()
 print('Getting templates')
 # Templates are of the form (matrix, measure)
 digit = 5  # Pick a digit from 0 to 9
-n_temp = 4  # Number of templates
+n_temp = 3  # Number of templates
 ind_temp_list = []  # list of template indices from dataset
 measure_temp_list = []  # list of template measures
 matrix_temp_list = []  # list of template dissimilarity matrices
@@ -78,15 +79,16 @@ b = b / b.sum()  # Random target probability vector
 
 B = ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b,
                                  lambdas_list)  # Synthesize barycenter matrix
-B = (B + B.T) / 2  # enforce symmetry of synthesized barycenter
-
+B = (B + B.T) / 2  # Enforce symmetry of synthesized barycenter (optional)
+np.fill_diagonal(B, 0)      #zero-diagonal (optional)
 
 
 ## RECOVER VECTOR OF WEIGHTS AND RECONSTRUCTED BARYCENTER B_RECON FROM SYNTHESIZED BARYCENTER USING
 # utils.get_lambdas FUNCTION AND COMPUTING ERROR ##################################################
 print('Estimation of the lambda vector with our method, and reconstruction')
 B_recon, lambdas = utils.get_lambdas(matrix_temp_list, measure_temp_list, B, b)
-B_recon = (B_recon + B_recon.T) /2 # Enforce Symmetry of the Reconstructed Barycenter matrix
+B_recon = (B_recon + B_recon.T) /2 # Enforce symmetry of the reconstructed barycenter matrix (optional)
+np.fill_diagonal(B_recon, 0)      #zero-diagonal (optional)
 
 print('Computing errors')
 

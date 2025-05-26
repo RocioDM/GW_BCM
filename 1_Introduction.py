@@ -1,30 +1,33 @@
+## INTRODUCTION TO THE TUTORIAL:
+## THE FUNCTION get_lambdas FROM utils
+
 import numpy as np
 import ot  # POT: Python Optimal Transport library
 
 from utils import get_lambdas  # User-defined function for analysis step (fixed-point approach)
 
 
-# Generate a random symmetric matrix of shape MxM with zeros on the diagonal
+# Generate a random matrix of shape MxM (symmetric and with zeros on the diagonal)
 def get_input(M):
     '''
     :param M: size of the output matrix
-    :return: symmetric matrix with zero diagonal
+    :return: matrix (symmetric and with zero diagonal)
     '''
     D = np.random.rand(M, M)
-    D = D.T + D  # Make it symmetric
-    np.fill_diagonal(D, 0)  # Distance matrix has 0 diagonal
+    D = D.T + D  # Make it symmetric (optional)
+    np.fill_diagonal(D, 0)  # Distance matrix has 0 diagonal (optional)
     return D
 
 
-# Generate a random symmetric "template" distance matrix and a uniform probability distribution
+# Generate a random "template" distance matrix and a uniform probability distribution
 def get_template(N=7):
     '''
     :param N: size of the template matrix (NxN) and probability vector (N)
     :return: symmetric matrix with zero diagonal (C) and probability vector (p)
     '''
     C = np.random.rand(N, N)
-    C = C.T + C
-    np.fill_diagonal(C, 0)
+    C = C.T + C         #symmetric (optional)
+    np.fill_diagonal(C, 0)      #zero-diagonal (optional)
     p = np.ones(C.shape[0]) / C.shape[0]  # Uniform distribution
     return C, p
 
@@ -34,7 +37,7 @@ def main(i, S=5, M=6):
     Perform one trial of synthesis and analysis of a GW-barycenter.
     :param i: Random seed
     :param S: Number of templates (vertices)
-    :param M: Dimension of input and output distance matrices (MxM)
+    :param M: Dimension of input and output dissimilarity matrices (MxM)
     """
     np.random.seed(i)  # Reproducibility
 
@@ -51,7 +54,7 @@ def main(i, S=5, M=6):
     #lambdas_list = np.random.rand(S)
     #lambdas_list = lambdas_list / lambdas_list.sum()
     #lambdas_list = np.ones(S)/S   # (uniform)
-    lambdas_list = np.random.dirichlet(np.ones(S), size=1)[0]
+    lambdas_list = np.random.dirichlet(np.ones(S), size=1)[0]  #random sample from the corresponding simplex
 
     # Define uniform distribution over target points
     q = np.ones(M) / M
@@ -59,8 +62,8 @@ def main(i, S=5, M=6):
     # Synthesize GW-barycenter based on random lambda
     D = ot.gromov.gromov_barycenters(M, C_list, p_list, q, lambdas_list)
 
-    # Run analysis step: recover lambda weights from the synthesized barycenter
-    D_recon, lambdas = get_lambdas(C_list, p_list, D, q) #fixed-point approach
+    # Run analysis step: recover lambda weights from the synthesized barycenter (fixed-point approach)
+    D_recon, lambdas = get_lambdas(C_list, p_list, D, q)
 
     ## Print lambda-vectors: original, recovered, and the L1 error between them
     print('Original lambda-vector = ', lambdas_list)

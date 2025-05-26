@@ -1,14 +1,12 @@
-## Classical OT Interpolation - Euclidean interpolation - GW interpolation
+## The synthesis barycenter problem via different approaches
+## This notebook visualize different interpolations between two MNIST point clouds
+## Classical OT Interpolation - Euclidean interpolation - GW interpolation via barycenters using POT and blow-up
 
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
-import scipy as sp
-from scipy.stats import gaussian_kde
 from sklearn.manifold import MDS
-from sklearn.manifold import smacof
 
-import ot  # Optimal transport library
+import ot  # POT: Python Optimal Transport Library
 
 ## IMPORT USER DEFINED LIBRARIES ##################################################################
 import utils
@@ -140,20 +138,21 @@ plt.show()
 
 
 
-## GW - Interpolation via Barycenters (separate plot)
+## GW - Interpolation via Barycenters
 
 ## Dissimilarity matrices
 C1 = ot.dist(X, X)
 C2 = ot.dist(Y, Y)
 
+# MDS embedding
+mds = MDS(n_components=2, dissimilarity='precomputed', random_state=42)
+
+
+## GW - Interpolation via Barycenters using POT / Fix-point approach for computing GW-barycenters (separate plot)
 
 ## Parameters for the POT function ot.gromov.gromov_barycenters
 M = max (len(a),len(b))
 p = np.ones(M) / M
-
-# MDS embedding
-mds = MDS(n_components=2, dissimilarity='precomputed', random_state=42)
-
 
 fig, ax = plt.subplots(figsize=(16, 5))
 
@@ -282,23 +281,22 @@ plt.savefig("gw_interpolation_blow_up.pdf", bbox_inches='tight')
 plt.show()
 
 
-
-
-gromov_distance = ot.gromov.gromov_wasserstein(XX, C1, b_bu, a, log=True)[1]
-gw_dist = gromov_distance['gw_dist']
-print(f'GW(X, X) : {gw_dist:.4f}')
-
-gromov_distance = ot.gromov.gromov_wasserstein(YY, C2, b_bu, b, log=True)[1]
-gw_dist = gromov_distance['gw_dist']
-print(f'GW(Y, Y) : {gw_dist:.4f}')
-
-gromov_distance = ot.gromov.gromov_wasserstein(XX, YY, b_bu, b_bu, log=True)[1]
-gw_dist = gromov_distance['gw_dist']
-print(f'GW(X, Y) : {gw_dist:.4f}')
-
-B = np.outer(b_bu, b_bu)
-# Compute the weighted Frobenius norm
-weighted_frob_norm = np.sum(B * (XX-YY)**2)
-print(f'Frob norm of difference X-Y after blow-up: {weighted_frob_norm}')
-print('Frob norm of X', np.linalg.norm(XX, 'fro'))
-print('Frob norm of Y', np.linalg.norm(YY, 'fro'))
+## Checking accuracy of the blow-up method (optional)
+# gromov_distance = ot.gromov.gromov_wasserstein(XX, C1, b_bu, a, log=True)[1]
+# gw_dist = gromov_distance['gw_dist']
+# print(f'GW(X, X) : {gw_dist:.4f}')
+#
+# gromov_distance = ot.gromov.gromov_wasserstein(YY, C2, b_bu, b, log=True)[1]
+# gw_dist = gromov_distance['gw_dist']
+# print(f'GW(Y, Y) : {gw_dist:.4f}')
+#
+# gromov_distance = ot.gromov.gromov_wasserstein(XX, YY, b_bu, b_bu, log=True)[1]
+# gw_dist = gromov_distance['gw_dist']
+# print(f'GW(X, Y) : {gw_dist:.4f}')
+#
+# B = np.outer(b_bu, b_bu)
+# # Compute the weighted Frobenius norm
+# weighted_frob_norm = np.sum(B * (XX-YY)**2)
+# print(f'Frob norm of difference X-Y after blow-up: {weighted_frob_norm}')
+# print('Frob norm of X', np.linalg.norm(XX, 'fro'))
+# print('Frob norm of Y', np.linalg.norm(YY, 'fro'))
