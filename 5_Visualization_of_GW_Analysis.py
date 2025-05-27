@@ -35,7 +35,7 @@ airplane_files = [
 
 # Bounds for sample points from the mesh surface
 l_bound = 200
-u_bound = 500
+u_bound = 400
 
 
 # Store the sampled points for each airplane
@@ -91,7 +91,7 @@ recovered_lambdas_list_bu = np.zeros_like(lambdas_list)
 ## Experiments with synthesized barycenters via POT ###############################################
 print('Starting experiments with synthesized barycenters via POT')
 
-M = 300  # Dimension of output barycentric matrix is MxM.
+M = 250  # Dimension of output barycentric matrix is MxM.
 b = np.ones(M) / M  # Uniform target probability vector
 
 for i in range(n_experiments):

@@ -177,13 +177,13 @@ mds = MDS(n_components=2, dissimilarity='precomputed', random_state=42)
 #M = 100
 M = len(C_s) # Dimension of output barycentric matrix is MxM.
 
-# b = np.ones(M) / M   # Uniform target probability vector
-b = np.random.rand(M)
-b = b / b.sum()  # Random target probability vector
+b = np.ones(M) / M   # Uniform target probability vector
+# b = np.random.rand(M)
+# b = b / b.sum()  # Random target probability vector
 
 B = ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b,
                                  lambdas_list)  # Synthesize barycenter matrix
-B = (B + B.T) / 2  # enforce symmetry
+B = (B + B.T) / 2  # enforce symmetry (optional)
 
 # Center and fit points to be in the [0,1]x[0,1] square for later visualization
 points_B = mds.fit_transform(B, init=C_s)
@@ -196,6 +196,8 @@ dist_matrix_occ = sp.spatial.distance.cdist(B1, B1)
 
 
 
+
+
 ## RECOVER VECTOR OF WEIGHTS FROM OCCLUDED SYNTHESIZED BARYCENTER USING utils.get_lambdas FUNCTION,
 #  RECONSTRUCTED BARYCENTER B_RECON USING POT AND NON-OCCLUDED TEMPLATES, AND COMPUTE ERRORS ######
 
@@ -204,9 +206,18 @@ print('Estimating the vector lambda from the perturbed input with perturbed temp
 _, lambdas = utils.get_lambdas(matrix_occ_list, measure_occ_list, dist_matrix_occ, b1)
 
 
+
+# B_blow_up, b_blow_up, temp_blow_up = utils.blow_up(matrix_occ_list, measure_occ_list, dist_matrix_occ, b1)
+# _, lambdas = utils.get_lambdas_blowup(temp_blow_up, B_blow_up, b_blow_up)
+
+
+
+
 print('Reconstruction of the input from the estimated lambda vector and using unperturbed templates (using POT for synthesis)')
+M = len(b)
 B_recon = ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b, lambdas)
-B_recon = (B_recon + B_recon.T) / 2  # sym
+#B_recon = sum(lambdas[j] * temp_blow_up[j] for j in range(n_temp))
+B_recon = (B_recon + B_recon.T) / 2  # symmetric matrix (optional)
 
 
 
@@ -252,17 +263,17 @@ plt.show()
 ## PLOT Synthesized Barycenter (B) AND Reconstructed Barycenter (B_RECON) #########################
 fig, axes = plt.subplots(1, 3, figsize=(12, 4))
 
-axes[0].scatter(points_B[:, 0], points_B[:, 1], s=b * 500)
+axes[0].scatter(points_B[:, 0], points_B[:, 1], s=b * 1000)
 axes[0].set_title('Input Barycenter')
 axes[0].set_xticks([])  # Remove x-axis ticks
 axes[0].set_yticks([])  # Remove y-axis ticks
 
-axes[1].scatter(B1[:, 0], B1[:, 1], s=b1 * 500)
+axes[1].scatter(B1[:, 0], B1[:, 1], s=b1 * 1000)
 axes[1].set_title('Occluded Barycenter')
 axes[1].set_xticks([])  # Remove x-axis ticks
 axes[1].set_yticks([])  # Remove y-axis ticks
 
-axes[2].scatter(points_B_recon[:, 0], points_B_recon[:, 1], s=b * 500)
+axes[2].scatter(points_B_recon[:, 0], points_B_recon[:, 1], s=b * 1000)
 axes[2].set_title('Reconstructed Barycenter')
 axes[2].set_xticks([])  # Remove x-axis ticks
 axes[2].set_yticks([])  # Remove y-axis ticks

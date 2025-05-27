@@ -98,7 +98,6 @@ plt.show()
 # label = np.array(label)  # Shape: (num_samples,)
 
 # Split into training and test sets (test_size% test, (100-test_size)% training)
-#X_train, X_test, y_train, y_test = train_test_split(Data, label, test_size=0.995, random_state=42, stratify=label)
 X_train, X_test, y_train, y_test = train_test_split(Data_selected, label_selected, test_size=0.9, random_state=42, stratify=label_selected)
 
 
