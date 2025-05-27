@@ -12,7 +12,7 @@ import os
 import scipy as sp
 from sklearn.manifold import MDS
 
-import ot
+import ot   # POT: Python Optimal Transport library
 
 ## IMPORT USER DEFINED LIBRARIES ##################################################################
 import utils

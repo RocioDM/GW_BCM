@@ -68,7 +68,7 @@ def get_lambdas(matrix_temp_list, measure_temp_list, matrix_input, measure_input
 
 
 ### adding constraints
-def get_lambdas1(matrix_temp_list, measure_temp_list, matrix_input, measure_input):
+def get_lambdas_constraints(matrix_temp_list, measure_temp_list, matrix_input, measure_input):
     '''
     Computes the barycentric weights (lambda_1,...,lambda_S), where S is the number of templates.
     Computes a candidate for a barycenter matrix associated with the barycenter weights using one iteration of the forward GW-barycenter problem.
@@ -142,7 +142,7 @@ def get_lambdas1(matrix_temp_list, measure_temp_list, matrix_input, measure_inpu
 
 ####
 
-def get_lambdas2(C_list, p_list, D, q):
+def get_lambdas_constraints2(C_list, p_list, D, q):
   '''
   overdetermined linear system
   '''
@@ -184,7 +184,7 @@ def get_lambdas2(C_list, p_list, D, q):
 ## We still need to add the restriction lambdas[s] >=0
 
 
-def get_lambdas3(C_list, p_list, D, q):
+def get_lambdas_constraints3(C_list, p_list, D, q):
   """
   get_lambdas computes the barycentric weights (lambda_1,...,lambda_S) from the simplified GW-Barycenter Analysis Problem
   and reconstruct a matrix that is "close" to a barycentric matrix

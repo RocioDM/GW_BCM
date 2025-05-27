@@ -9,7 +9,8 @@ import numpy as np # linear algebra
 import scipy as sp
 import matplotlib.pyplot as plt
 from sklearn.manifold import MDS
-import ot
+
+import ot   ## POT: Python Optimal Transport library
 
 
 ## IMPORT USER DEFINED LIBRARIES ##################################################################

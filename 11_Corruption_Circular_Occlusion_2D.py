@@ -5,15 +5,12 @@
 ## The input sample is taken in the Barycenter space of the non-occluded templates and then
 ## corrupted under occlusion (circular mask).
 
-import numpy as np # linear algebra
-import pandas as pd # data processing
+import numpy as np
 import scipy as sp
-import torch
 import matplotlib.pyplot as plt
 from sklearn.manifold import MDS
-import time
-import kagglehub
-import ot
+
+import ot   # POT: Python Optimal Transport library
 
 
 ## IMPORT USER DEFINED LIBRARIES ##################################################################

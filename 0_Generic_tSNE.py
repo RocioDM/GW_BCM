@@ -21,18 +21,10 @@ y = np.hstack((y_train, y_test))
 X_flattened = X.reshape(X.shape[0], -1)  # Shape: (70000, 784)
 
 # Combine the label and image pixels into a matrix
-# First column: label, Remaining 784 columns: image pixels
 mnist_matrix = np.hstack((y.reshape(-1, 1), X_flattened))
 
-# Save as CSV (optional)
-#np.savetxt("mnist_matrix.csv", mnist_matrix, delimiter=",", fmt='%d')
-
-# Display shape
-print("Matrix shape:", mnist_matrix.shape)  # (70000, 785)
 
 labels = mnist_matrix[:10000,0:1].squeeze()
-
-print(labels.shape)
 matrix = mnist_matrix[:10000,1:]
 
 
@@ -40,10 +32,8 @@ matrix = mnist_matrix[:10000,1:]
 n_components = 30  # Reduce dimensions
 pca = PCA(n_components=n_components)
 X_pca = pca.fit_transform(matrix)
-print('PCA done')
-# Explained variance ratio
-# explained_variance = pca.explained_variance_ratio_
-# print(f"Explained Variance Ratio: {explained_variance}")
+#print('PCA done')
+
 
 # Apply t-SNE
 tsne = TSNE(n_components=2, perplexity=30, random_state=42)

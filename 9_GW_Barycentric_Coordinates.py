@@ -1,20 +1,12 @@
-##Clustering by applying t-SNE to the GW-barycentric coordinate space:
+## GW-barycentric coordinate space with two classes
+## In this notebook uses the 2D Point Cloud MNIST dataset
 
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy as sp
 from sklearn.model_selection import train_test_split
-from sklearn.manifold import TSNE
-from sklearn.decomposition import PCA
-from sklearn.cluster import KMeans
-from sklearn.metrics import accuracy_score, confusion_matrix
-from scipy.stats import mode
-import seaborn as sns
+from sklearn.metrics import accuracy_score
 from matplotlib.colors import ListedColormap
-
-
-
-import ot
 
 ## IMPORT USER DEFINED LIBRARIES ##################################################################
 import utils
@@ -28,7 +20,8 @@ Data, label, digit_indices = utils.load_pointcloudmnist2d()
 
 
 # Select only some digits
-selected_digits = [0,4]
+selected_digits = [0, 1]
+
 selected_indices = np.concatenate([digit_indices[d] for d in selected_digits])
 
 # Filter the dataset
@@ -39,7 +32,7 @@ label_selected = label[selected_indices]
 ## GETTING RANDOM TEMPLATES FROM DATASET ##########################################################
 # Templates are of the form (matrix, measure)
 n_classes = len(selected_digits)
-n_temp = 6  # Number of templates for each digit
+n_temp = 1  # Number of templates for each digit
 ind_temp_list = []  # list of template indices from dataset
 measure_temp_list = []  # list of template measures
 matrix_temp_list = []  # list of template dissimilarity matrices
@@ -77,7 +70,7 @@ for digit in selected_digits:
 print('Random templates, extracted')
 
 ## PLOT TEMPLATES #################################################################################
-fig, axes = plt.subplots(1, n_classes*n_temp, figsize=(8, 4))
+fig, axes = plt.subplots(1, n_classes*n_temp, figsize=(8, 5))
 axes = axes.flatten()
 
 for i, ind in enumerate(ind_temp_list):
@@ -86,15 +79,14 @@ for i, ind in enumerate(ind_temp_list):
     X = utils.normalize_2Dpointcloud_coordinates(X)
     a = a[a != -1]
     a = a / float(a.sum())
-    axes[i].scatter(X[:, 0], X[:, 1], s=a * 250)
+    axes[i].scatter(X[:, 0], X[:, 1], s=a * 350)
     #axes[i].set_title(f'Template #{i + 1}')
     axes[i].set_aspect('equal', adjustable='box')
     axes[i].set_xticks([])  # Remove x-axis ticks
     axes[i].set_yticks([])  # Remove y-axis ticks
+    axes[i].set_title(f'Template Label = {int(label[ind])}\n Coordinates {i*(0,1)+(1-i)*(1,0)} ')
 # Add figure title
 fig.suptitle("Templates", fontsize=16)
-plt.tight_layout()
-plt.savefig("templates.pdf", bbox_inches='tight')
 plt.show()
 
 
@@ -107,7 +99,7 @@ plt.show()
 
 # Split into training and test sets (test_size% test, (100-test_size)% training)
 #X_train, X_test, y_train, y_test = train_test_split(Data, label, test_size=0.995, random_state=42, stratify=label)
-X_train, X_test, y_train, y_test = train_test_split(Data_selected, label_selected, test_size=0.05, random_state=42, stratify=label_selected)
+X_train, X_test, y_train, y_test = train_test_split(Data_selected, label_selected, test_size=0.9, random_state=42, stratify=label_selected)
 
 
 # Initialize lists for training set
@@ -154,11 +146,12 @@ for i in range(len(train_distance_matrices)):
     b = train_measures[i]  # Measure
     label = y_train[i]  # Label of the training point
 
-    # Compute lambdas using the given function
-    _, lambdas = utils.get_lambdas(matrix_temp_list, measure_temp_list, B, b)
+    # Compute lambdas
+    _, lambdas = utils.get_lambdas_constraints(matrix_temp_list, measure_temp_list, B, b)
 
-    # Store the result in a row (label first, then lambda values)
-    lambda_matrix_list.append(np.concatenate(([label], lambdas)))
+    if lambdas.min()>=0.0:
+        # Store the result in a row (label first, then lambda values)
+        lambda_matrix_list.append(np.concatenate(([label], lambdas)))
 
     # Print progress every 50 iterations
     if i % 50 == 0:
@@ -175,118 +168,71 @@ labels = lambda_matrix[:,0:1].squeeze() ## First Column has the labels of the tr
 matrix = lambda_matrix[:,1:] ## The rest of the columns correspond to GW-barycentric coordinates. Each row corresponds to one training sample from the data set.
 
 
-## APPLY t-SNE ####################################################################################
-tsne = TSNE(n_components=2, perplexity=n_classes*n_temp, random_state=42)
-embedded = tsne.fit_transform(matrix)
-print('t-SNE in the barycenter coordinates, done')
+# Extract first two dimensions of matrix as coordinates
+X = matrix[:, 0]  # First dimension (x-axis)
+Y = matrix[:, 1]  # Second dimension (y-axis)
 
-# Plot the result
-plt.figure(figsize=(10, 7))
-for label in np.unique(labels):
-    plt.scatter(embedded[labels == label, 0], embedded[labels == label, 1], label=f'Class {label}', alpha=0.7, edgecolors='k')
-plt.title('t-SNE Projection into 2D')
-plt.xlabel('Component 1')
-plt.ylabel('Component 2')
-plt.legend()
-plt.tight_layout()
-plt.savefig("tsne.pdf", bbox_inches='tight')
-plt.show()
+# Define colors for labels (0: blue, 1: red)
+custom_cmap = ListedColormap(["blue", "red"])
 
-
-
-# Apply K-Means clustering
-num_clusters = n_classes  # Set the number of clusters (digits 0-9)
-kmeans = KMeans(n_clusters=num_clusters, random_state=42, n_init=10)
-predicted_labels = kmeans.fit_predict(embedded)  # Cluster assignments
-
-# True labels from the training set
-true_labels = labels
-
-# Map clusters to true labels
-mapped_labels = np.zeros_like(labels)
-
-for cluster in range(num_clusters):
-    mask = (predicted_labels == cluster)
-    if np.any(mask):  # Avoid empty clusters
-        mapped_labels[mask] = mode(true_labels[mask])[0]  # Most common true label in the cluster
-
-# Compute accuracy
-accuracy = accuracy_score(true_labels, mapped_labels)
-print(f"Overall Clustering Accuracy: {accuracy:.4f}")
-
-
-# Scatter plot of clusters
-
-
-# Use the updated Matplotlib colormap retrieval method
-colors = plt.colormaps.get_cmap("tab10").colors[:n_classes]  # Extract 'n_classes' colors from 'tab10'
-custom_cmap = ListedColormap(colors)  # Create a colormap with only 'n_classes' colors
-
-scatter = plt.scatter(embedded[:, 0], embedded[:, 1], c=predicted_labels, cmap=custom_cmap, alpha=0.7)
-plt.colorbar(scatter, ticks=range(n_classes), label="Cluster ID")
-plt.xlabel("t-SNE Dim 1")
-plt.ylabel("t-SNE Dim 2")
-plt.title("K-Means Clustering Visualization")
-plt.tight_layout()
-plt.savefig("KMeans.pdf", bbox_inches='tight')
-plt.show()
-
-
-# Compute confusion matrix
-conf_matrix = confusion_matrix(true_labels, mapped_labels)
-
-# Plot confusion matrix
+# Create scatter plot
 plt.figure(figsize=(8, 6))
-sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues", xticklabels=range(n_classes), yticklabels=range(n_classes))
-plt.xlabel("Predicted Labels")
-plt.ylabel("True Labels")
-plt.title("Confusion Matrix for K-Means Clustering")
-plt.tight_layout()
-plt.savefig("confusion_matrix.pdf", bbox_inches='tight')
+scatter = plt.scatter(X, Y, c=labels, cmap=custom_cmap, alpha=0.7, edgecolors="k")
+
+## Plot the mid-point (0.5, 0.5)
+# plt.scatter(0.5, 0.5, color='white', marker='o', s=200, edgecolors='black', linewidths=2)  # Circle
+
+# Plot vertical and horizontal dashed lines passing through mid-point (0.5, 0.5)
+plt.axvline(x=0.5, color='gray', linestyle='-.', linewidth=1)  # Vertical dashed line at x=0.5
+plt.axhline(y=0.5, color='gray', linestyle='-.', linewidth=1)  # Horizontal dashed line at y=0.5
+
+
+# Add legend manually
+legend_labels = {0: f'Class Digit {selected_digits[0]}', 1: f'Class Digit {selected_digits[1]}'}
+handles = [plt.Line2D([0], [0], marker="o", color="w", markerfacecolor=color, markersize=6, label=legend_labels[l])
+           for l, color in zip([0, 1], ["blue", "red"])]
+plt.legend(handles=handles)
+
+# Axis labels and title
+plt.xlabel("GW-Barycentric Coordinate 1")
+plt.ylabel("GW-Barycentric Coordinate 2")
+plt.title("GW-Barycentric Coordinates")
+
+# Show plot
 plt.show()
 
 
+## Assign predicted labels based on which value is larger
+predicted_labels = np.where(X >= Y, selected_digits[0],selected_digits[1])  # 0 if X is max, 1 if Y is max
+# Compute accuracy
+accuracy = accuracy_score(labels, predicted_labels)
 
-# Compute per-class accuracy
-class_accuracies = conf_matrix.diagonal() / conf_matrix.sum(axis=1)
-
-# Print per-class accuracy
-for class_idx, acc in enumerate(class_accuracies):
-    print(f"Accuracy for Class {class_idx}: {acc:.4f}")
+# Print result
+print(f"Computed Accuracy: {accuracy:.4f}")
 
 
-# from sklearn.cluster import DBSCAN
-#
-# # Apply DBSCAN Clustering
-# dbscan = DBSCAN(eps=2, min_samples=5)  # Adjust `eps` and `min_samples` for better results
-# predicted_labels = dbscan.fit_predict(embedded)  # Cluster assignments
-#
-# # Get unique cluster IDs
-# unique_clusters = set(predicted_labels) - {-1}  # Remove noise label (-1)
-#
-# # True labels from the dataset
-# true_labels = labels
-#
-# # Map DBSCAN clusters to true labels
-# mapped_labels = np.zeros_like(labels)
-#
-# for cluster in unique_clusters:
-#     mask = (predicted_labels == cluster)
-#     if np.any(mask):  # Avoid empty clusters
-#         mapped_labels[mask] = mode(true_labels[mask])[0]  # Most common true label in the cluster
-#
-# # Compute accuracy (excluding noise points)
-# valid_points = predicted_labels != -1  # Ignore noise points
-# accuracy = accuracy_score(true_labels[valid_points], mapped_labels[valid_points])
-#
-# print(f"DBSCAN Clustering Accuracy: {accuracy:.4f}")
-#
-# # Scatter plot of clusters
-# plt.figure(figsize=(8, 6))
-# scatter = plt.scatter(embedded[:, 0], embedded[:, 1], c=predicted_labels, cmap='tab10', alpha=0.7)
-# plt.colorbar(scatter, ticks=range(len(unique_clusters)), label="Cluster ID")
-# plt.xlabel("t-SNE Dim 1")
-# plt.ylabel("t-SNE Dim 2")
-# plt.title("DBSCAN Clustering Visualization")
-# plt.show()
+## Print the first samples from the data set with their GW-Barycentric coordinates
 
+n_samples_to_plot = 5
+
+# Create subplots
+fig, axes = plt.subplots(1, n_samples_to_plot, figsize=(15, 5))
+
+for idx, i in enumerate(range(n_samples_to_plot)):
+    a = X_train[i, :, 2]  # Extract the third column (weights)
+    valid_indices = np.where(a != -1)[0]  # Filter out invalid (-1) values
+    a = a[valid_indices]
+    a = a / float(a.sum())  # Normalize weights
+
+    U = X_train[i, valid_indices, :2]  # Extract 2D points
+    U = utils.normalize_2Dpointcloud_coordinates(U)  # Normalize coordinates
+
+    axes[idx].scatter(U[:, 0], U[:, 1], s=a * 350)  # Scatter plot with size based on weights
+    axes[idx].set_aspect('equal', adjustable='box')
+    axes[idx].set_xticks([])
+    axes[idx].set_yticks([])
+    axes[idx].set_title(f'Assigned label = {int(labels[i])} \n Coordinates ({X[i]:.2f}, {Y[i]:.2f})')
+
+fig.suptitle("First samples from the data set with their GW-Barycentric Coordinates and Predicted Labels", fontsize=14)
+plt.tight_layout()
+plt.show()

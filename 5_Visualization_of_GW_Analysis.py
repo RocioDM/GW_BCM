@@ -12,7 +12,7 @@ import os
 import scipy as sp
 import random
 
-import ot
+import ot   # POT: Python Optimal Transport library
 
 ## IMPORT USER DEFINED LIBRARIES ##################################################################
 import utils
