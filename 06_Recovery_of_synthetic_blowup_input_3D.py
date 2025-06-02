@@ -11,6 +11,7 @@ import trimesh
 import os
 import scipy as sp
 from sklearn.manifold import MDS
+from sklearn.decomposition import PCA
 
 import ot   # POT: Python Optimal Transport library
 
@@ -40,8 +41,8 @@ airplane_files = [
 
 print('Getting 3D point cloud templates from the same class and their blow-up')
 # Bounds for sample points from the mesh surface
-l_bound = 1000
-u_bound = 1001
+l_bound = 300
+u_bound = 500
 
 # Store the sampled points for each airplane
 sampled_data = []
@@ -89,9 +90,7 @@ print('Size of the blow-up: ', B.shape[0])
 
 ## Get vector of weights ##########################################################################
 #lambdas_list =  np.random.dirichlet(np.ones(n_temp), size=1)[0] # generates random samples from a Dirichlet distribution, which is a common way to generate probability distributions over a simplex.
-#lambdas_list = np.random.rand(n_temp)
-#lambdas_list = lambdas_list/lambdas_list.sum()
-lambdas_list = np.array([1/3,1/3,1/3])
+lambdas_list = np.array([1/3,1/3,1/3])      # (uniform)
 
 ## Synthesize a GW-Barycenter as convex combination of blow-up templates ##########################
 print('Synthesizing a GW-Barycenter as convex combination of blow-up templates')
@@ -220,13 +219,54 @@ axes[2].scatter(points_B_recon[:, 0], points_B_recon[:, 1], points_B_recon[:, 2]
 axes[2].set_xlabel('X')
 axes[2].set_ylabel('Y')
 axes[2].set_zlabel('Z')
-axes[2].set_title('Reconstruction (Fix-Point approach)')
+axes[2].set_title('Reconstruction (Fixed-Point approach)')
 axes[2].set_axis_off()
 axes[2].grid(False)
 
 plt.tight_layout()
 plt.show()
 
+###################################################################################################
+## RE-ORIENTATION ##########################################################################
 
 
+# Alignment / re-orientation using PCA
+def align_to_reference(source_points, reference_points):
+    # Center
+    source_centered = source_points - np.mean(source_points, axis=0)
+    reference_centered = reference_points - np.mean(reference_points, axis=0)
 
+    # PCA
+    pca_source = PCA(n_components=3).fit(source_centered)
+    pca_ref = PCA(n_components=3).fit(reference_centered)
+
+    # Rotation matrix from source to reference
+    R = pca_ref.components_.T @ pca_source.components_
+
+    # Apply rotation
+    aligned = source_centered @ R
+    return aligned + np.mean(reference_points, axis=0)
+
+
+# Apply alignment
+points_B_recon_blow_up_aligned = align_to_reference(points_B_recon_blow_up, points_B)
+points_B_recon_aligned = align_to_reference(points_B_recon, points_B)
+
+# Plot
+fig, axes = plt.subplots(1, 3, figsize=(16, 8), subplot_kw={'projection': '3d'})
+
+axes[0].scatter(points_B[:, 0], points_B[:, 1], points_B[:, 2], s=1)
+axes[0].set_title('Barycenter: Combination of blow-up templates')
+axes[0].set_axis_off()
+
+axes[1].scatter(points_B_recon_blow_up_aligned[:, 0], points_B_recon_blow_up_aligned[:, 1],
+                points_B_recon_blow_up_aligned[:, 2], s=1)
+axes[1].set_title('Reconstruction (Blow-up approach, aligned)')
+axes[1].set_axis_off()
+
+axes[2].scatter(points_B_recon_aligned[:, 0], points_B_recon_aligned[:, 1], points_B_recon_aligned[:, 2], s=1)
+axes[2].set_title('Reconstruction (Fixed-Point approach, aligned)')
+axes[2].set_axis_off()
+
+plt.tight_layout()
+plt.show()

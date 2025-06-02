@@ -12,7 +12,6 @@ from scipy.stats import mode
 import seaborn as sns
 from matplotlib.colors import ListedColormap
 
-import ot
 
 ## IMPORT USER DEFINED LIBRARIES ##################################################################
 import utils
@@ -37,7 +36,7 @@ label_selected = label[selected_indices]
 ## GETTING RANDOM TEMPLATES FROM DATASET ##########################################################
 # Templates are of the form (matrix, measure)
 n_classes = len(selected_digits)
-n_temp = 6  # Number of templates for each digit
+n_temp = 1   # Number of templates for each digit
 ind_temp_list = []  # list of template indices from dataset
 measure_temp_list = []  # list of template measures
 matrix_temp_list = []  # list of template dissimilarity matrices
@@ -74,6 +73,9 @@ for digit in selected_digits:
 
 print('Random templates, extracted')
 
+
+
+
 ## PLOT TEMPLATES #################################################################################
 fig, axes = plt.subplots(1, n_classes*n_temp, figsize=(8, 4))
 axes = axes.flatten()
@@ -100,7 +102,6 @@ plt.show()
 
 ## GET TRAINING SAMPLES FROM DATASET ##############################################################
 # Split into training and test sets (test_size% test, (100-test_size)% training)
-#X_train, X_test, y_train, y_test = train_test_split(Data, label, test_size=0.995, random_state=42, stratify=label)
 X_train, X_test, y_train, y_test = train_test_split(Data_selected, label_selected, test_size=0.05, random_state=42, stratify=label_selected)
 
 
@@ -136,11 +137,17 @@ print(f"Number of training sample points: {len(train_distance_matrices)}")
 
 
 
+
+
 ## APPLY THE GW-BARYCENTER ANALYSIS METHOD: EXTRACT GW-BARYCENTER COORDINATES (lambdas) ###########
 print('Compute GW-barycentric coordinates')
 
 # Initialize the list to store rows of the big matrix
 lambda_matrix_list = []
+
+# Ask the user to choose a method
+method = int(input("Choose a method: fixed-point approach [enter 1] or gradient approach via blow-up [enter 2] "))
+
 
 # Compute lambdas for each (B, b) pair in training data
 for i in range(len(train_distance_matrices)):
@@ -149,7 +156,13 @@ for i in range(len(train_distance_matrices)):
     label = y_train[i]  # Label of the training point
 
     # Compute lambdas using the given function
-    _, lambdas = utils.get_lambdas(matrix_temp_list, measure_temp_list, B, b)
+    if method == 1:
+        _, lambdas = utils.get_lambdas(matrix_temp_list, measure_temp_list, B, b)   #Fixed-point approach
+
+    elif method == 2:
+        B, b, temp_blow_up = utils.blow_up(matrix_temp_list, measure_temp_list, B, b)   #Templates blow-up
+        _, lambdas = utils.get_lambdas_blowup(temp_blow_up, B, b) #Gradient approach
+
 
     # Store the result in a row (label first, then lambda values)
     lambda_matrix_list.append(np.concatenate(([label], lambdas)))
@@ -182,6 +195,8 @@ plt.title('t-SNE Projection into 2D')
 plt.xlabel('Component 1')
 plt.ylabel('Component 2')
 plt.legend()
+plt.xticks([])  # Remove x ticks
+plt.yticks([])  # Remove y ticks
 plt.tight_layout()
 plt.savefig("tsne.pdf", bbox_inches='tight')
 plt.show()
@@ -210,8 +225,6 @@ print(f"Overall Clustering Accuracy: {accuracy:.4f}")
 
 
 # Scatter plot of clusters
-
-# Use the updated Matplotlib colormap retrieval method
 colors = plt.colormaps.get_cmap("tab10").colors[:n_classes]  # Extract 'n_classes' colors from 'tab10'
 custom_cmap = ListedColormap(colors)  # Create a colormap with only 'n_classes' colors
 
@@ -225,7 +238,7 @@ plt.savefig("KMeans.pdf", bbox_inches='tight')
 plt.show()
 
 
-# Compute confusion matrix
+# Compute confusion matrix (optional)
 conf_matrix = confusion_matrix(true_labels, mapped_labels)
 
 # Plot confusion matrix

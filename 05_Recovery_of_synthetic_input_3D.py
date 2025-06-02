@@ -37,8 +37,8 @@ airplane_files = [
 
 
 # Bounds for sample points from the mesh surface
-l_bound = 1000
-u_bound = 1001
+l_bound = 300
+u_bound = 500
 
 
 # Store the sampled points for each airplane
@@ -85,7 +85,7 @@ lambdas_list = np.array([1/3,1/3,1/3])  # Uniform
 
 ## Synthesize a GW-Barycenter using POT ###########################################################
 print('Synthesizing a GW-Barycenter using the POT Library')
-M = 1000 # Dimension of output barycentric matrix is MxM.
+M = 400 # Dimension of output barycentric matrix is MxM.
 
 b = np.ones(M) / M   # Uniform target probability vector
 # b = np.random.rand(M)
@@ -95,7 +95,6 @@ B =  ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b, lam
 
 # Create an MDS instance for visualization
 mds = MDS(n_components=3, dissimilarity='precomputed', random_state=42)
-
 # Fit and transform the distance matrix
 points_B = mds.fit_transform(B)
 
@@ -112,7 +111,7 @@ points_B_recon = mds.fit_transform(B_recon)
 ## From the blow-up approach
 B_blow_up, b_blow_up, temp_blow_up = utils.blow_up(matrix_temp_list, measure_temp_list, B, b)
 print('Size of the blow-up: ', B_blow_up.shape[0])
-points_B_blowup = mds.fit_transform(B_blow_up)
+points_B_blowup = mds.fit_transform(B_blow_up,B)
 B_recon_blow_up, lambdas_recon_blow_up = utils.get_lambdas_blowup(temp_blow_up, B_blow_up, b_blow_up)
 ## Fit and transform the distance matrix through MDS
 points_B_recon_blow_up = mds.fit_transform(B_recon_blow_up)
@@ -144,7 +143,7 @@ print('Recovered lambda-vector = ', lambdas_recon_blow_up)
 print('Error = ', np.linalg.norm(lambdas_list - lambdas_recon_blow_up, 1))
 
 ## Compare Original target vs. its blow-up version
-gromov_distance = ot.gromov.gromov_wasserstein(B, B_blow_up, b, b, log=True)[1]
+gromov_distance = ot.gromov.gromov_wasserstein(B, B_blow_up, b, b_blow_up, log=True)[1]
 gw_dist = gromov_distance['gw_dist']
 print(f'GW(Target,Target Blow-up): {gw_dist}')
 
@@ -203,7 +202,7 @@ axes[0,0].set_title('Synthesized GW-Barycenter')
 axes[0,0].set_axis_off()
 axes[0,0].grid(False)
 
-# subplot: Blow up
+# subplot: Blow-up
 axes[0,1].scatter(points_B_blowup[:, 0], points_B_blowup[:, 1], points_B_blowup[:, 2], s=1)
 axes[0,1].set_xlabel('X')
 axes[0,1].set_ylabel('Y')
@@ -212,12 +211,12 @@ axes[0,1].set_title('Blow-up GW-Barycenter')
 axes[0,1].set_axis_off()
 axes[0,1].grid(False)
 
-# subplot: Reconstruction via fix-point approach
+# subplot: Reconstruction via fixed-point approach
 axes[1,0].scatter(points_B_recon[:, 0], points_B_recon[:, 1], points_B_recon[:, 2], s=1)
 axes[1,0].set_xlabel('X')
 axes[1,0].set_ylabel('Y')
 axes[1,0].set_zlabel('Z')
-axes[1,0].set_title('Reconstruction (Fix-Point approach)')
+axes[1,0].set_title('Reconstruction (Fixed-Point approach)')
 axes[1,0].set_axis_off()
 axes[1,0].grid(False)
 
