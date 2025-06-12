@@ -17,7 +17,7 @@ import scipy as sp
 from sklearn.model_selection import train_test_split
 
 import ot
-from sympy.codegen import Print
+
 
 ## IMPORT USER DEFINED LIBRARIES ##################################################################
 import utils
@@ -29,16 +29,23 @@ import utils
 # digit_indices: list(len 10) of indices for each digit (0-9)
 Data, label, digit_indices = utils.load_pointcloudmnist2d()
 
+# Select some digits
+selected_digits = [0,4,7]  #[0,1,2,3,4,5,6,7,8,9]
+selected_indices = np.concatenate([digit_indices[d] for d in selected_digits])
+
+# Filter the dataset
+Data_selected = Data[selected_indices]
+label_selected  = label[selected_indices]
 
 ## GETTING RANDOM TEMPLATES FROM DATASET ##########################################################
 # Templates are of the form (matrix, measure)
-n_classes = 10  # Since we are working with digits 0-9
-n_temp = 5  # Number of templates for each digit
+n_classes = len(selected_digits)
+n_temp = 2 # Number of templates for each digit
 ind_temp_list = []  # list of template indices from dataset
 measure_temp_list = []  # list of template measures
 matrix_temp_list = []  # list of template dissimilarity matrices
 
-for digit in range(n_classes):
+for digit in selected_digits :
     for s in range(n_temp):
         # Select a random index corresponding to the chosen digit
         ind = digit_indices[digit][np.random.randint(len(digit_indices[digit]))]
@@ -71,7 +78,7 @@ for digit in range(n_classes):
 print('Random templates, extracted')
 
 ## PLOT TEMPLATES #################################################################################
-fig, axes = plt.subplots(1, 10*n_temp, figsize=(15, 10))
+fig, axes = plt.subplots(1, n_classes*n_temp, figsize=(15, 10))
 axes = axes.flatten()
 
 for i, ind in enumerate(ind_temp_list):
@@ -95,14 +102,14 @@ plt.show()
 
 ##TEST ONE SAMPLE
 print('Testing  in one sample of the data set:')
-print(f'As templates we are using {n_temp} random samples of digit point-clouds from 0 to 9.')
+print(f'As templates we are using {n_temp} random samples of digit point-clouds from {selected_digits}.')
 print('We compute the GW-barycentric coordinates separately for each class')
 print('and, with those coordinates, we synthesize GW-barycenters (as many as classes)')
 
 # Select a random sample
 u = np.random.randint(0, 100)
-a = Data[u, :, 2]  # Original mass values
-X = Data[u, a != -1, :2]  # Extract valid points
+a = Data_selected[u, :, 2]  # Original mass values
+X = Data_selected[u, a != -1, :2]  # Extract valid points
 
 # Normalize X
 X = X - X.mean(0)[np.newaxis, :]
@@ -112,7 +119,7 @@ dist_matrix_input = sp.spatial.distance.cdist(X, X)
 a = a[a != -1]
 a = a / float(a.sum())  # Normalize to sum to 1
 
-print('label of input = ', label[u])
+print('label of input = ', label_selected[u])
 
 ## PERFORM GW-BARYCENTER ANALYSIS FOR EACH CLASS SEPARATELY #######################################
 gw_dist_list = [] # to store the GW-distance loos
@@ -142,7 +149,7 @@ gw_dist_array = np.array(gw_dist_list)
 computed_label = np.where(gw_dist_array == gw_dist_array.min())[0][0]
 print('min GW-loss class = ',computed_label)
 
-if label[u] == computed_label:
+if label_selected[u] == computed_label:
     print('This random input is correctly classified.')
 else:
     print('This random input is NOT correctly classified.')
@@ -152,13 +159,14 @@ else:
 ## REPEAT THE ABOVE CLASSIFICATION FOR A SET OF TRAINING SAMPLES FROM THE DATASET #################
 print('Now, we will perform the same classification approach for a training set of the data set to finally compute accuracy.')
 
+
 ## GET TRAINING SAMPLES FROM DATASET ##############################################################
 # Convert to NumPy arrays
-Data = np.array(Data)  # Shape: (num_samples, num_points, 3)
-label = np.array(label)  # Shape: (num_samples,)
+#Data_selected = np.array(Data_selected)  # Shape: (num_samples, num_points, 3)
+#label_selected = np.array(label_selected)  # Shape: (num_samples,)
 
 # Split into training and test sets (test_size% test, (100-test_size)% training)
-X_train, X_test, y_train, y_test = train_test_split(Data, label, test_size=0.99, random_state=42, stratify=label)
+X_train, X_test, y_train, y_test = train_test_split(Data_selected, label_selected, test_size=0.8, random_state=42, stratify=label_selected)
 
 # Initialize lists for training set
 train_indices = []
@@ -192,44 +200,40 @@ print(f"Number of training sample points: {len(train_distance_matrices)}")
 
 
 ## CLASSIFICATION IN THE TRAINING SET
-positive_case = 0 # To compute accuracy
+class_labels = sorted(set(y_train))
+
+positive_case = 0
 
 for i in range(len(train_distance_matrices)):
-    B = train_distance_matrices[i]  # Distance matrix
-    b = train_measures[i]  # Measure
-    label = y_train[i]  # Label of the training point
+    gw_dist_list = []
+    B = train_distance_matrices[i]
+    b = train_measures[i]
+    label = y_train[i]  # true label
 
     for j in range(n_classes):
         start_idx = j * n_temp
         end_idx = (j + 1) * n_temp
-
-        # Select the relevant chunk for this iteration
         matrix_chunk = matrix_temp_list[start_idx:end_idx]
         measure_chunk = measure_temp_list[start_idx:end_idx]
 
-        # Compute barycenter coordinates (lambdas) and synthesize new GW-barycenters
-        bary, lambdas = utils.get_lambdas(matrix_chunk, measure_chunk, B, b)
-
-        ## Compare GW-distance between initial and synthesized GW-barycenters
+        bary, lambdas = utils.get_lambdas_constraints(matrix_chunk, measure_chunk, B, b)
         gromov_distance = ot.gromov.gromov_wasserstein(B, bary, b, b, log=True)[1]
         gw_dist = gromov_distance['gw_dist']
-
-        # Store results
         gw_dist_list.append(gw_dist)
 
-    # Convert list to array
     gw_dist_array = np.array(gw_dist_list)
+    computed_index = np.argmin(gw_dist_array)
+    computed_label = class_labels[computed_index]
 
-    # Predict label based on mim GW-dist
-    computed_label = np.where(gw_dist_array == gw_dist_array.min())[0][0]
     if label == computed_label:
         positive_case += 1
+    #print(f'True label: {label} - estimated label: {computed_label}') #(optional)
 
-    # Print progress every 50 iterations
     if i % 50 == 0:
         print(f"Processed {i} samples...")
         if i != 0:
-            print(f'So far, the accuracy of the method is {positive_case / i}')
+            print(f"So far, the accuracy of the method is {positive_case / i:.4f}")
+
 
 print('Accuracy = ', positive_case / len(train_distance_matrices))
 

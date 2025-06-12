@@ -26,7 +26,7 @@ dataset_path = utils.load_pointcloud3d()  # The path you got from kagglehub
 #number of templates
 n_temp = 3 # For this experiment we use exactly 3 templates due to the visualization
 
-# List of 5 different airplane sample files
+# List of 3 different airplane sample files
 airplane_files = [
     'airplane_0236.off',
     'airplane_0435.off',
@@ -35,7 +35,7 @@ airplane_files = [
 
 # Bounds for sample points from the mesh surface
 l_bound = 300
-u_bound = 500
+u_bound = 301
 
 
 # Store the sampled points for each airplane
@@ -81,7 +81,6 @@ for airplane_file in airplane_files:
 n_experiments = 10
 
 
-
 lambdas_list = np.random.dirichlet([1,1,1],n_experiments)
 
 recovered_lambdas_list_fp = np.zeros_like(lambdas_list)
@@ -91,7 +90,7 @@ recovered_lambdas_list_bu = np.zeros_like(lambdas_list)
 ## Experiments with synthesized barycenters via POT ###############################################
 print('Starting experiments with synthesized barycenters via POT')
 
-M = 400  # Dimension of output barycentric matrix is MxM.
+M = 300  # Dimension of output barycentric matrix is MxM.
 b = np.ones(M) / M  # Uniform target probability vector
 
 for i in range(n_experiments):
@@ -147,9 +146,9 @@ y = [0, np.sqrt(3), 0, 0]
 
 fig, axes = plt.subplots(2, 2, figsize=(16, 16), gridspec_kw={'hspace': 0.35})
 
-fig.suptitle("Synthesized GW-Barycenter via POT", fontsize=16, y=0.97)
+fig.suptitle("Synthesized GW-Barycenter via POT function (Fixed Point Iteration)", fontsize=18, y=0.97)
 fig.text(0.5, 0.525, "Synthesized GW-Barycenter via Combinations of Blow-up Templates",
-         ha='center', va='top', fontsize=16)
+         ha='center', va='top', fontsize=18)
 
 for i in range(n_experiments):
     original_lambda = lambdas_list[i].reshape(3, 1)
@@ -185,10 +184,10 @@ for ax_row in axes:
         ax.axis('off')
         ax.set_aspect('equal')
 
-axes[0, 0].set_title('Fixed Point Approach')
-axes[0, 1].set_title('Gradient Approach via Blow-up')
-axes[1, 0].set_title('Fixed Point Approach')
-axes[1, 1].set_title('Gradient Approach via Blow-up')
+axes[0, 0].set_title('Fixed Point Approach', fontsize=16)
+axes[0, 1].set_title('Gradient Approach via Blow-up', fontsize=16)
+axes[1, 0].set_title('Fixed Point Approach', fontsize=16)
+axes[1, 1].set_title('Gradient Approach via Blow-up', fontsize=16)
 
 plt.tight_layout(rect=[0, 0, 1, 0.91])
 

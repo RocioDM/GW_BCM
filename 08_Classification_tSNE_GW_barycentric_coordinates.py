@@ -1,5 +1,8 @@
-## Clustering by applying t-SNE to the GW-barycentric coordinate space
-## This notebook uses the 2D point cloud MNIST dataset
+## t-SNE embedding of GW-barycentric coordinates and Clustering via K-Means.
+## This notebook uses the 2D point cloud MNIST dataset.
+## When prompted, the user must enter 1 for the fixed-point algorithm
+## or 2 for the gradient-based algorithm using blow-ups.
+
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,6 +14,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 from scipy.stats import mode
 import seaborn as sns
 from matplotlib.colors import ListedColormap
+import string
 
 
 ## IMPORT USER DEFINED LIBRARIES ##################################################################
@@ -36,7 +40,7 @@ label_selected = label[selected_indices]
 ## GETTING RANDOM TEMPLATES FROM DATASET ##########################################################
 # Templates are of the form (matrix, measure)
 n_classes = len(selected_digits)
-n_temp = 1   # Number of templates for each digit
+n_temp = 1  # Number of templates for each digit
 ind_temp_list = []  # list of template indices from dataset
 measure_temp_list = []  # list of template measures
 matrix_temp_list = []  # list of template dissimilarity matrices
@@ -102,7 +106,8 @@ plt.show()
 
 ## GET TRAINING SAMPLES FROM DATASET ##############################################################
 # Split into training and test sets (test_size% test, (100-test_size)% training)
-X_train, X_test, y_train, y_test = train_test_split(Data_selected, label_selected, test_size=0.05, random_state=42, stratify=label_selected)
+percent = 0.745 #0.0825 ---> 1800 samples when working with class digits 0 and 4 / 0.745--->500
+X_train, X_test, y_train, y_test = train_test_split(Data_selected, label_selected, test_size=percent, random_state=42, stratify=label_selected)
 
 
 # Initialize lists for training set
@@ -157,7 +162,8 @@ for i in range(len(train_distance_matrices)):
 
     # Compute lambdas using the given function
     if method == 1:
-        _, lambdas = utils.get_lambdas(matrix_temp_list, measure_temp_list, B, b)   #Fixed-point approach
+        _, lambdas = utils.get_lambdas(matrix_temp_list, measure_temp_list, B, b)
+        #_, lambdas = utils.get_lambdas_constraints(matrix_temp_list, measure_temp_list, B, b)   #Fixed-point approach
 
     elif method == 2:
         B, b, temp_blow_up = utils.blow_up(matrix_temp_list, measure_temp_list, B, b)   #Templates blow-up
@@ -202,6 +208,9 @@ plt.savefig("tsne.pdf", bbox_inches='tight')
 plt.show()
 
 
+
+
+
 # Apply K-Means clustering
 num_clusters = n_classes  # Set the number of clusters (digits 0-9)
 kmeans = KMeans(n_clusters=num_clusters, random_state=42, n_init=10)
@@ -224,26 +233,56 @@ print(f"Overall Clustering Accuracy: {accuracy:.4f}")
 
 
 
-# Scatter plot of clusters
-colors = plt.colormaps.get_cmap("tab10").colors[:n_classes]  # Extract 'n_classes' colors from 'tab10'
-custom_cmap = ListedColormap(colors)  # Create a colormap with only 'n_classes' colors
+
+
+# Choose any colors you like — names, hex codes, or RGB tuples
+custom_colors = ['#2ca02c', '#9467bd']  # green and purple
+
+# Create a colormap from those colors
+custom_cmap = ListedColormap(custom_colors)
+
+# # Scatter plot of clusters
+# colors = plt.colormaps.get_cmap("tab10").colors[:n_classes]  # Extract 'n_classes' colors from 'tab10'
+# custom_cmap = ListedColormap(colors)  # Create a colormap with only 'n_classes' colors
 
 scatter = plt.scatter(embedded[:, 0], embedded[:, 1], c=predicted_labels, cmap=custom_cmap, alpha=0.7)
-plt.colorbar(scatter, ticks=range(n_classes), label="Cluster ID")
-plt.xlabel("t-SNE Dim 1")
-plt.ylabel("t-SNE Dim 2")
+
+# Custom colorbar
+
+class_names = ['Class A', 'Class B']
+
+cbar = plt.colorbar(scatter, ticks=range(n_classes))
+cbar.ax.set_yticklabels(class_names, rotation=90)
+
+# Rotate and center each tick label
+for label in cbar.ax.get_yticklabels():
+    label.set_rotation(90)
+    label.set_ha('center')  # Center horizontally
+    label.set_va('center')  # Center vertically
+
+
+cbar.set_label("Cluster ID")
+
+plt.xlabel("t-SNE Dimension 1")
+plt.ylabel("t-SNE Dimension 2")
+plt.xticks([])  # Remove x ticks
+plt.yticks([])  # Remove y ticks
 plt.title("K-Means Clustering Visualization")
 plt.tight_layout()
 plt.savefig("KMeans.pdf", bbox_inches='tight')
 plt.show()
 
 
-# Compute confusion matrix (optional)
+
+
+# Compute confusion matrix
 conf_matrix = confusion_matrix(true_labels, mapped_labels)
 
 # Plot confusion matrix
 plt.figure(figsize=(8, 6))
-sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues", xticklabels=range(n_classes), yticklabels=range(n_classes))
+
+sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues",
+            xticklabels=class_names, yticklabels=class_names)
 plt.xlabel("Predicted Labels")
 plt.ylabel("True Labels")
 plt.title("Confusion Matrix for K-Means Clustering")
@@ -253,11 +292,13 @@ plt.show()
 
 
 
+
 # Compute per-class accuracy
 class_accuracies = conf_matrix.diagonal() / conf_matrix.sum(axis=1)
 
-# Print per-class accuracy
+
 for class_idx, acc in enumerate(class_accuracies):
-    print(f"Accuracy for Class {class_idx}: {acc:.4f}")
+    class_label = string.ascii_uppercase[class_idx]  # 'A', 'B', 'C', ...
+    print(f"Accuracy for Class {class_label}: {acc:.4f}")
 
 
