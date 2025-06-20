@@ -216,7 +216,7 @@ for i in range(len(train_distance_matrices)):
         matrix_chunk = matrix_temp_list[start_idx:end_idx]
         measure_chunk = measure_temp_list[start_idx:end_idx]
 
-        bary, lambdas = utils.get_lambdas_constraints(matrix_chunk, measure_chunk, B, b)
+        bary, lambdas = utils.get_lambdas_constraints_general(matrix_chunk, measure_chunk, B, b)
         gromov_distance = ot.gromov.gromov_wasserstein(B, bary, b, b, log=True)[1]
         gw_dist = gromov_distance['gw_dist']
         gw_dist_list.append(gw_dist)

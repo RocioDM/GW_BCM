@@ -76,11 +76,15 @@ ax[0].scatter(X[:, 0], X[:, 1], s=a * 500, color='blue')
 ax[0].set_title("Original Point Cloud")
 ax[0].set_xlim(0, 1)
 ax[0].set_ylim(0, 1)
+ax[0].set_xticks([])  # Remove x-axis ticks
+ax[0].set_yticks([])  # Remove y-axis ticks
 
 ax[1].scatter(X_occluded[:, 0], X_occluded[:, 1], s=a_occluded * 500, color='blue')
 ax[1].set_title("Occluded Point Cloud")
 ax[1].set_xlim(0, 1)
 ax[1].set_ylim(0, 1)
+ax[1].set_xticks([])  # Remove x-axis ticks
+ax[1].set_yticks([])  # Remove y-axis ticks
 
 # Draw occlusion circle
 circle = plt.Circle((0.5, 0.5), 0.2, edgecolor='red', facecolor='none', linestyle='--', lw=2)
@@ -94,8 +98,8 @@ plt.show()
 print('Selecting random templates and simulating their occlusions')
 
 # Templates are of the form (matrix, measure)
-digit = 3  # Pick a digit from 0 to 9
-n_temp = 4  # Number of templates
+digit = 5  # Pick a digit from 0 to 9
+n_temp = 3  # Number of templates
 
 ind_temp_list = []  # list of template indices from dataset
 measure_temp_list = []  # list of template measures
@@ -218,8 +222,8 @@ B_recon = (B_recon + B_recon.T) / 2  # sym
 
 ## Compare Original target vs reconstruction
 gromov_distance = ot.gromov.gromov_wasserstein(B, B_recon, b, b, log=True)[1]
-gw_dist = gromov_distance['gw_dist']
-print(f'GW(Target,Reconstructed Target): {gw_dist}')
+gw_dist_analysis = gromov_distance['gw_dist']
+print(f'GW(Target,Reconstructed Target): {gw_dist_analysis:.4f}')
 
 ## Fit and transform the distance matrix of B_recon
 points_B_recon = mds.fit_transform(B_recon, init=points_B)
@@ -254,14 +258,22 @@ for a in axes:
 plt.show()
 
 
+## Random reconstruction
 U = ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b,
                                  np.random.dirichlet(np.ones(n_temp), size=1)[0])
+
+## Compare Original target vs random reconstruction
+gromov_distance = ot.gromov.gromov_wasserstein(B, U, b, b, log=True)[1]
+gw_dist = gromov_distance['gw_dist']
+
+print(f'GW(Target,Random Reconstruction): {gw_dist:.4f}')
+
 U = mds.fit_transform(U)
 U = utils.normalize_2Dpointcloud_coordinates(U)
 
 
 ## PLOT Synthesized Barycenter (B) AND Reconstructed Barycenter (B_RECON) #########################
-fig, axes = plt.subplots(1, 4, figsize=(12, 4))
+fig, axes = plt.subplots(1, 4, figsize=(12, 3))
 
 axes[0].scatter(points_B[:, 0], points_B[:, 1], s=b * 500)
 axes[0].set_title('Input Barycenter')
@@ -283,4 +295,53 @@ axes[3].set_title('Random Reconstruction')
 axes[3].set_xticks([])  # Remove x-axis ticks
 axes[3].set_yticks([])  # Remove y-axis ticks
 
+plt.show()
+
+
+
+
+n_iter = 100  # Number of random reconstructions to perform
+gw_distances = []
+
+for i in range(n_iter):
+    # Random reconstruction
+    U = ot.gromov.gromov_barycenters(
+        M, matrix_temp_list, measure_temp_list, b,
+        np.random.dirichlet(np.ones(n_temp), size=1)[0]
+    )
+
+    # Compare Original target vs random reconstruction
+    gromov_distance = ot.gromov.gromov_wasserstein(B, U, b, b, log=True)[1]
+    gw_dist = gromov_distance['gw_dist']
+    gw_distances.append(gw_dist)
+
+    #print(f'[{i+1}] GW(Target, Random Reconstruction): {gw_dist:.4f}')
+
+
+
+# a = gw_dist_analysis
+#
+# plt.figure(figsize=(8, 5))
+# plt.plot(gw_distances, marker='o', label='GW(Target, Random Reconstruction)')
+# plt.axhline(y=a, color='r', linestyle='--', label=f'GW(Target, Proposed Reconstruction) = {a}')
+# plt.xlabel('Iteration')
+# plt.ylabel('GW Distance')
+# #plt.title('GW Distances')
+# plt.legend()
+# plt.grid(False)
+# plt.tight_layout()
+# plt.show()
+
+
+a = gw_dist_analysis
+
+plt.figure(figsize=(8, 5))
+plt.plot(gw_distances, 'o', color='blue', label='GW(Target, Random Reconstruction)')  # Only blue dots
+plt.axhline(y=a, color='r', linestyle='--', label=f'GW(Target, Proposed Reconstruction) = {a:.4f}')
+plt.xlabel('Iteration')
+plt.ylabel('GW Distance')
+# plt.title('GW Distances')
+plt.legend()
+plt.grid(False)
+plt.tight_layout()
 plt.show()

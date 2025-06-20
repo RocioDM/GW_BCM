@@ -20,7 +20,7 @@ Data, label, digit_indices = utils.load_pointcloudmnist2d()
 
 
 # Select only some digits
-selected_digits = [0, 4,7]
+selected_digits = [0, 4, 7]
 
 selected_indices = np.concatenate([digit_indices[d] for d in selected_digits])
 
@@ -101,7 +101,7 @@ plt.show()
 # label = np.array(label)  # Shape: (num_samples,)
 
 # Split into training and test sets (test_size% test, (100-test_size)% training)
-X_train, X_test, y_train, y_test = train_test_split(Data_selected, label_selected, test_size=0.9, random_state=42, stratify=label_selected)
+X_train, X_test, y_train, y_test = train_test_split(Data_selected, label_selected, test_size=0.7, random_state=42, stratify=label_selected)
 
 
 # Initialize lists for training set
@@ -168,16 +168,8 @@ labels = lambda_matrix[:,0:1].squeeze() ## First Column has the labels of the tr
 matrix = lambda_matrix[:,1:] ## The rest of the columns correspond to GW-barycentric coordinates. Each row corresponds to one training sample from the data set.
 
 predicted_labels = np.argmax(matrix, axis=1)
-accuracy = np.mean(predicted_labels == labels)
-print(f"Classification Accuracy on Training Set (using argmax of GW-barycentric coordinates): {accuracy:.4f}")
 
 
-
-cm = confusion_matrix(labels, predicted_labels, labels=[0,1,2])
-disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=[f'Digit {d}' for d in selected_digits])
-disp.plot(cmap="Blues")
-plt.title("Confusion Matrix")
-plt.show()
 
 # Extract first two dimensions of matrix as coordinates
 X = matrix[:, 0]  # First dimension (x-axis)
@@ -211,9 +203,9 @@ for idx, i in enumerate(range(n_samples_to_plot)):
     axes[idx].set_yticks([])
     l = np.array([X[i], Y[i], Z[i]])
     coord = l @ T  # compute weighted combination of triangle vertices
-    axes[idx].set_title(f'Assigned label = {int(labels[i])} \n Coordinates ({coord[0]:.2f}, {coord[1]:.2f})')
+    axes[idx].set_title(f'Coordinates ({coord[0]:.2f}, {coord[1]:.2f})')
 
-fig.suptitle("First samples from the data set with their GW-Barycentric Coordinates and Predicted Labels", fontsize=14)
+fig.suptitle("First samples from the data set with their estimated GW-Barycentric Coordinates", fontsize=20)
 plt.tight_layout()
 plt.show()
 
@@ -234,10 +226,7 @@ scatter = plt.scatter(projected_coords[:, 0], projected_coords[:, 1], c=labels, 
 # Draw triangle outline
 plt.plot([-1, 0, 1, -1], [0, np.sqrt(3), 0, 0], 'k-', linewidth=1)
 
-# # # Add triangle vertex labels
-# # vertex_labels = ['(-1, 0)', '(1, 0)', '(0, √3)']
-# for i, txt in enumerate(vertex_labels):
-#     plt.text(T[i, 0], T[i, 1] + 0.1, txt, ha='center', fontsize=10)
+
 
 # Legend
 legend_labels = {0: f'Class Digit {selected_digits[0]}',
@@ -248,7 +237,7 @@ handles = [plt.Line2D([0], [0], marker="o", color="w", markerfacecolor=color, ma
 plt.legend(handles=handles)
 
 # Labels and title
-plt.title("GW-Barycentric Coordinates Projected into Triangle (3-class)")
+plt.title("GW-Barycentric Coordinates", fontsize=20) ##  Projected into Triangle (3 classes)
 plt.axis('equal')
 plt.xticks([])
 plt.yticks([])

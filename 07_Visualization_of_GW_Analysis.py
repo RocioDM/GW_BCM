@@ -34,8 +34,8 @@ airplane_files = [
 ]
 
 # Bounds for sample points from the mesh surface
-l_bound = 300
-u_bound = 301
+l_bound = 200
+u_bound = 400
 
 
 # Store the sampled points for each airplane
@@ -55,6 +55,7 @@ for airplane_file in airplane_files:
 
     #Random number of samples
     num_points_to_sample = random.randint(l_bound, u_bound)
+    print('template size = ', num_points_to_sample)
     # Sample points from the mesh surface
     sampled_points = mesh.sample(num_points_to_sample)
 
@@ -146,9 +147,9 @@ y = [0, np.sqrt(3), 0, 0]
 
 fig, axes = plt.subplots(2, 2, figsize=(16, 16), gridspec_kw={'hspace': 0.35})
 
-fig.suptitle("Synthesized GW-Barycenter via POT function (Fixed Point Iteration)", fontsize=18, y=0.97)
-fig.text(0.5, 0.525, "Synthesized GW-Barycenter via Combinations of Blow-up Templates",
-         ha='center', va='top', fontsize=18)
+fig.suptitle("Synthesized GW-Barycenters via Fixed Point Iteration", fontsize=22, y=0.97)    ## i.e., via POT function
+fig.text(0.5, 0.525, "Synthesized GW-Barycenters via Combinations of Blow-up Templates",
+         ha='center', va='top', fontsize=22)
 
 for i in range(n_experiments):
     original_lambda = lambdas_list[i].reshape(3, 1)
@@ -184,10 +185,10 @@ for ax_row in axes:
         ax.axis('off')
         ax.set_aspect('equal')
 
-axes[0, 0].set_title('Fixed Point Approach', fontsize=16)
-axes[0, 1].set_title('Gradient Approach via Blow-up', fontsize=16)
-axes[1, 0].set_title('Fixed Point Approach', fontsize=16)
-axes[1, 1].set_title('Gradient Approach via Blow-up', fontsize=16)
+axes[0, 0].set_title('Fixed Point Approach', fontsize=20)
+axes[0, 1].set_title('Gradient Approach via Blow-up', fontsize=20)
+axes[1, 0].set_title('Fixed Point Approach', fontsize=20)
+axes[1, 1].set_title('Gradient Approach via Blow-up', fontsize=20)
 
 plt.tight_layout(rect=[0, 0, 1, 0.91])
 

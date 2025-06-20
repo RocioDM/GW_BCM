@@ -72,7 +72,6 @@ def get_lambdas_constraints(matrix_temp_list, measure_temp_list, matrix_input, m
     '''
     Computes the barycentric weights (lambda_1,...,lambda_S), where S is the number of templates.
     Computes a candidate for a barycenter matrix associated with the barycenter weights using one iteration of the forward GW-barycenter problem.
-      See for example remark 2.9 or equation 11.
 
     Input:
       matrix_temp_list: List of S template matrices (Ns x Ns) representing different dissimilarity matrices.
@@ -184,7 +183,7 @@ def get_lambdas_constraints2(C_list, p_list, D, q):
 ## We still need to add the restriction lambdas[s] >=0
 
 
-def get_lambdas_constraints3(C_list, p_list, D, q):
+def get_lambdas_constraints_general(C_list, p_list, D, q):
   """
   get_lambdas computes the barycentric weights (lambda_1,...,lambda_S) from the simplified GW-Barycenter Analysis Problem
   and reconstruct a matrix that is "close" to a barycentric matrix
@@ -221,10 +220,10 @@ def get_lambdas_constraints3(C_list, p_list, D, q):
   for i in range(S):
       b[i] = np.trace(D @ F_list[i])
       for j in range(S):
-          K[i,j] = np.trace(F_list[i] @ F_list[j])
+          K[i,j] = np.trace(F_list[i].T @ F_list[j])
 
-  P = K.T @ K
-  v = - b.T @ K
+  P = K
+  v = -b.T
   A = np.ones([1,S])
   G = - np.eye(S)
   h = np.zeros(S)
@@ -238,7 +237,12 @@ def get_lambdas_constraints3(C_list, p_list, D, q):
 
   # Solve the problem
   prob = cp.Problem(objective, constraints)
+
   prob.solve()
+
+  #print(prob.solver_stats.solver_name)
+  #print(prob.solver_stats.num_iters)
+
 
   lambdas = x.value
 
