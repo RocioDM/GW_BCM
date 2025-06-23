@@ -4,8 +4,7 @@
 import numpy as np
 import ot  # POT: Python Optimal Transport library
 
-from utils import get_lambdas, \
-    get_lambdas_constraints3  # User-defined function for analysis step (fixed-point approach)
+from utils import get_lambdas, get_lambdas_constraints  # User-defined function for analysis step (fixed-point approach)
 
 
 # Generate a random matrix of shape MxM (symmetric and with zeros on the diagonal)
@@ -52,9 +51,6 @@ def main(i, S=5, M=6):
         C_list.append(C_s)
 
     # Sample a random lambda (weights for the templates) and normalize to lie in simplex
-    #lambdas_list = np.random.rand(S)
-    #lambdas_list = lambdas_list / lambdas_list.sum()
-    #lambdas_list = np.ones(S)/S   # (uniform)
     lambdas_list = np.random.dirichlet(np.ones(S), size=1)[0]  #random sample from the corresponding simplex
 
     # Define uniform distribution over target points
@@ -64,7 +60,8 @@ def main(i, S=5, M=6):
     D = ot.gromov.gromov_barycenters(M, C_list, p_list, q, lambdas_list)
 
     # Run analysis step: recover lambda weights from the synthesized barycenter (fixed-point approach)
-    D_recon, lambdas = get_lambdas_constraints3(C_list, p_list, D, q)
+    D_recon, lambdas = get_lambdas(C_list, p_list, D, q)
+    #D_recon, lambdas = get_lambdas_constraints(C_list, p_list, D, q)
 
     ## Print lambda-vectors: original, recovered, and the L1 error between them
     print('Original lambda-vector = ', lambdas_list)

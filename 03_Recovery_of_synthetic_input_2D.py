@@ -66,8 +66,6 @@ for s in range(n_temp):
 ## GENERATING RANDOM VECTOR OF WEIGHTS AND SYNTHESIZING A BARYCENTER USING POT ####################
 print('Generating a GW-barycenter with a random lambda vector (synthesis through POT)')
 # Random vector of weights
-# lambdas_list = np.random.rand(n_temp)
-# lambdas_list = lambdas_list / lambdas_list.sum()
 lambdas_list = np.random.dirichlet(np.ones(n_temp), size=1)[0]
 
 # Synthesize a Barycenter using POT

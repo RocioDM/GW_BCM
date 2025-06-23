@@ -1,7 +1,7 @@
 ## t-SNE embedding of GW-barycentric coordinates and Clustering via K-Means.
 ## This notebook uses the 2D point cloud MNIST dataset.
-## When prompted, the user must enter 1 for the fixed-point algorithm
-## or 2 for the gradient-based algorithm using blow-ups.
+## When prompted, the user must enter "1" for the fixed-point algorithm
+## or "2" for the gradient-based algorithm using blow-ups, and press enter.
 
 
 import numpy as np
@@ -96,7 +96,7 @@ for i, ind in enumerate(ind_temp_list):
     axes[i].set_xticks([])  # Remove x-axis ticks
     axes[i].set_yticks([])  # Remove y-axis ticks
 # Add figure title
-fig.suptitle("Templates", fontsize=16)
+fig.suptitle("Templates", fontsize=24)
 plt.tight_layout()
 plt.savefig("templates.pdf", bbox_inches='tight')
 plt.show()
@@ -106,7 +106,7 @@ plt.show()
 
 ## GET TRAINING SAMPLES FROM DATASET ##############################################################
 # Split into training and test sets (test_size% test, (100-test_size)% training)
-percent = 0.745 #0.0825 ---> 1800 samples when working with class digits 0 and 4 / 0.745--->500
+percent = 0.0825 #0.0825 ---> 1800 samples when working with class digits 0 and 4 / 0.745--->500
 X_train, X_test, y_train, y_test = train_test_split(Data_selected, label_selected, test_size=percent, random_state=42, stratify=label_selected)
 
 
@@ -163,11 +163,11 @@ for i in range(len(train_distance_matrices)):
     # Compute lambdas using the given function
     if method == 1:
         _, lambdas = utils.get_lambdas(matrix_temp_list, measure_temp_list, B, b)
-        #_, lambdas = utils.get_lambdas_constraints(matrix_temp_list, measure_temp_list, B, b)   #Fixed-point approach
+        #_, lambdas = utils.get_lambdas_constraints_general(matrix_temp_list, measure_temp_list, B, b)   #Fixed-point approach
 
     elif method == 2:
         B, b, temp_blow_up = utils.blow_up(matrix_temp_list, measure_temp_list, B, b)   #Templates blow-up
-        _, lambdas = utils.get_lambdas_blowup(temp_blow_up, B, b) #Gradient approach
+        _, lambdas = utils.get_lambdas_blowup(temp_blow_up, B, b)   #Gradient approach
 
 
     # Store the result in a row (label first, then lambda values)
@@ -197,9 +197,10 @@ print('t-SNE in the barycenter coordinates, done')
 plt.figure(figsize=(10, 7))
 for label in np.unique(labels):
     plt.scatter(embedded[labels == label, 0], embedded[labels == label, 1], label=f'Class {label}', alpha=0.7, edgecolors='k')
-plt.title('t-SNE Projection into 2D')
-plt.xlabel('Component 1')
-plt.ylabel('Component 2')
+plt.legend(fontsize=24)
+plt.title('t-SNE Projection into 2D', fontsize=28)
+plt.xlabel('Component 1', fontsize=18)
+plt.ylabel('Component 2', fontsize=18)
 plt.legend()
 plt.xticks([])  # Remove x ticks
 plt.yticks([])  # Remove y ticks
@@ -252,7 +253,7 @@ scatter = plt.scatter(embedded[:, 0], embedded[:, 1], c=predicted_labels, cmap=c
 class_names = ['Class A', 'Class B']
 
 cbar = plt.colorbar(scatter, ticks=range(n_classes))
-cbar.ax.set_yticklabels(class_names, rotation=90)
+cbar.ax.set_yticklabels(class_names, rotation=90,  fontsize=14)
 
 # Rotate and center each tick label
 for label in cbar.ax.get_yticklabels():
@@ -261,13 +262,13 @@ for label in cbar.ax.get_yticklabels():
     label.set_va('center')  # Center vertically
 
 
-cbar.set_label("Cluster ID")
+#cbar.set_label("Cluster ID", fontsize=18)
 
-plt.xlabel("t-SNE Dimension 1")
-plt.ylabel("t-SNE Dimension 2")
+plt.xlabel("t-SNE Dimension 1", fontsize=18)
+plt.ylabel("t-SNE Dimension 2", fontsize=18)
 plt.xticks([])  # Remove x ticks
 plt.yticks([])  # Remove y ticks
-plt.title("K-Means Clustering Visualization")
+plt.title("K-Means Clustering", fontsize=24)
 plt.tight_layout()
 plt.savefig("KMeans.pdf", bbox_inches='tight')
 plt.show()
@@ -283,9 +284,9 @@ plt.figure(figsize=(8, 6))
 
 sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues",
             xticklabels=class_names, yticklabels=class_names)
-plt.xlabel("Predicted Labels")
-plt.ylabel("True Labels")
-plt.title("Confusion Matrix for K-Means Clustering")
+plt.xlabel("Predicted Labels", fontsize=18)
+plt.ylabel("True Labels", fontsize=18)
+plt.title("Confusion Matrix for K-Means Clustering", fontsize=24)
 plt.tight_layout()
 plt.savefig("confusion_matrix.pdf", bbox_inches='tight')
 plt.show()
