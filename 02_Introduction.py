@@ -1,22 +1,17 @@
 ## INTRODUCTION TO THE TUTORIAL:
-## THE FUNCTION get_lambdas FROM utils
+
+## In this script we test the functions "get_lambdas" and "get_lambdas_constraints"
+## from "utils"
+## We generate random matrices that serve as templates;
+## synthesize GW barycenters (for random coordinate vectors) using the POT Library;
+## and we recover those coordinates.
+## To analyze the performance of our methods, this process is repeated "n_experiments" times
+## computing GW distances and differences between the true coordinate vectors and the estimated ones
 
 import numpy as np
 import ot  # POT: Python Optimal Transport library
 
 from utils import get_lambdas, get_lambdas_constraints  # User-defined function for analysis step (fixed-point approach)
-
-
-# Generate a random matrix of shape MxM (symmetric and with zeros on the diagonal)
-def get_input(M):
-    '''
-    :param M: size of the output matrix
-    :return: matrix (symmetric and with zero diagonal)
-    '''
-    D = np.random.rand(M, M)
-    D = D.T + D  # Make it symmetric (optional)
-    np.fill_diagonal(D, 0)  # Distance matrix has 0 diagonal (optional)
-    return D
 
 
 # Generate a random "template" distance matrix and a uniform probability distribution
@@ -60,7 +55,9 @@ def main(i, S=5, M=6):
     D = ot.gromov.gromov_barycenters(M, C_list, p_list, q, lambdas_list)
 
     # Run analysis step: recover lambda weights from the synthesized barycenter (fixed-point approach)
+    ## Testing the function get_lambdas
     D_recon, lambdas = get_lambdas(C_list, p_list, D, q)
+    ## Uncomment the following line if you want to test the function get_lambdas_constraints
     #D_recon, lambdas = get_lambdas_constraints(C_list, p_list, D, q)
 
     ## Print lambda-vectors: original, recovered, and the L1 error between them
@@ -84,5 +81,6 @@ if __name__ == '__main__':
     It check whether the recover lambdas coincide with the originals and 
     whether the recovered barycenter from analysis matches the one from synthesis
     '''
-    for i in range(10):
+    n_experiments = 10
+    for i in range(n_experiments):
         main(i)

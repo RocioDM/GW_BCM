@@ -1,12 +1,6 @@
 import numpy as np  # linear algebra
 import pandas as pd  # data processing
-import scipy as sp
-import torch
-import matplotlib.pyplot as plt
-from sklearn.manifold import MDS
-import time
 import kagglehub
-import ot
 
 
 ## MNIST POINT CLOUD ##############################################################################

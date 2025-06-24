@@ -3,6 +3,8 @@
 ## and visualizes them.
 ## GW-Barycenters are synthesized via POT and as convex combinations of the blow-up templates
 ## We use the functions "get_lambdas", "blow_up" and "get_lambdas_blowup" from "utils"
+## We use 3 templates; we repeat the experiments "n_experiments" times;
+## and visualize the true and estimated GW coordinates in the simplex.
 
 
 import matplotlib.pyplot as plt

@@ -1,5 +1,11 @@
 ## GW-barycentric coordinate space with 3 classes
 ## In this notebook uses the 2D Point Cloud MNIST dataset
+## We compute GW barycentric coordinates of all training samples
+## with respect to selected templates (three templates, one for each class)
+## using the function "get_lambdas_constraints" from "utils",
+## and visualize them the 2-dimensional simplex
+
+
 
 import numpy as np
 import matplotlib.pyplot as plt

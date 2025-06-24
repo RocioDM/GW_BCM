@@ -30,7 +30,7 @@ import utils
 Data, label, digit_indices = utils.load_pointcloudmnist2d()
 
 # Select some digits
-selected_digits = [0,4,7]  #[0,1,2,3,4,5,6,7,8,9]
+selected_digits = [0,1]  #[0,1,2,3,4,5,6,7,8,9]
 selected_indices = np.concatenate([digit_indices[d] for d in selected_digits])
 
 # Filter the dataset
@@ -40,7 +40,7 @@ label_selected  = label[selected_indices]
 ## GETTING RANDOM TEMPLATES FROM DATASET ##########################################################
 # Templates are of the form (matrix, measure)
 n_classes = len(selected_digits)
-n_temp = 2 # Number of templates for each digit
+n_temp = 2 # Number of templates for each digit class
 ind_temp_list = []  # list of template indices from dataset
 measure_temp_list = []  # list of template measures
 matrix_temp_list = []  # list of template dissimilarity matrices
@@ -101,7 +101,7 @@ plt.show()
 
 
 ##TEST ONE SAMPLE
-print('Testing  in one sample of the data set:')
+print('Example - Testing  in one sample of the data set:')
 print(f'As templates we are using {n_temp} random samples of digit point-clouds from {selected_digits}.')
 print('We compute the GW-barycentric coordinates separately for each class')
 print('and, with those coordinates, we synthesize GW-barycenters (as many as classes)')
@@ -145,6 +145,7 @@ for j in range(n_classes):
 # Convert list to array
 gw_dist_array = np.array(gw_dist_list)
 
+
 # Predict label based on mim GW-dist
 computed_label = np.where(gw_dist_array == gw_dist_array.min())[0][0]
 print('min GW-loss class = ',computed_label)
@@ -153,6 +154,7 @@ if label_selected[u] == computed_label:
     print('This random input is correctly classified.')
 else:
     print('This random input is NOT correctly classified.')
+
 
 
 
@@ -216,7 +218,9 @@ for i in range(len(train_distance_matrices)):
         matrix_chunk = matrix_temp_list[start_idx:end_idx]
         measure_chunk = measure_temp_list[start_idx:end_idx]
 
-        bary, lambdas = utils.get_lambdas_constraints_general(matrix_chunk, measure_chunk, B, b)
+        bary, lambdas = utils.get_lambdas_constraints(matrix_chunk, measure_chunk, B, b)
+        #bary, lambdas = utils.get_lambdas(matrix_chunk, measure_chunk, B, b)
+
         gromov_distance = ot.gromov.gromov_wasserstein(B, bary, b, b, log=True)[1]
         gw_dist = gromov_distance['gw_dist']
         gw_dist_list.append(gw_dist)

@@ -4,11 +4,14 @@
 ## and recover the sample using the recovered weights and non-occluded templates.
 ## The input sample is taken in the Barycenter space of the non-occluded templates and then
 ## corrupted under occlusion (circular mask).
+## Finally, we contract our method with reconstructions obtained with random coordinates.
+
 
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
 from sklearn.manifold import MDS
+
 
 import ot   # POT: Python Optimal Transport library
 
@@ -93,6 +96,9 @@ ax[1].add_patch(plt.Circle((0.5, 0.5), 0.2, edgecolor='red', facecolor='none', l
 
 plt.show()
 
+
+
+
 ## GET RANDOM TEMPLATES AND THEIR OCCLUSIONS FROM DATASET #########################################
 
 print('Selecting random templates and simulating their occlusions')
@@ -144,12 +150,14 @@ for s in range(n_temp):
     dist_matrix_occ = sp.spatial.distance.cdist(C_occluded, C_occluded)
     matrix_occ_list.append(dist_matrix_occ)
 
-print('Synthesizing a GW-barycenter using POT and perturbing it by occlusion')
 
-## GENERATE A RANDOM VECTOR OF WEIGHTS, SYNTHESIZING A BARYCENTER USING POT AND ITS OCCLUSION #####
+
+# ###################################################################################################
+
+## GENERATE A RANDOM VECTOR OF WEIGHTS, SYNTHESIZE A BARYCENTER USING POT AND ITS OCCLUSION #####
+
+print('Synthesizing a GW-barycenter using POT and perturbing it by occlusion')
 # Random vector of weights
-# lambdas_list = np.random.rand(n_temp)
-# lambdas_list = lambdas_list / lambdas_list.sum()
 lambdas_list = np.random.dirichlet(np.ones(n_temp), size=1)[0]
 
 # Create an MDS instance
@@ -160,12 +168,10 @@ mds = MDS(n_components=2, dissimilarity='precomputed', random_state=42)
 M = len(C_s) # Dimension of output barycentric matrix is MxM.
 
 b = np.ones(M) / M   # Uniform target probability vector
-# b = np.random.rand(M)
-# b = b / b.sum()  # Random target probability vector
 
 B = ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b,
                                  lambdas_list)  # Synthesize barycenter matrix
-B = (B + B.T) / 2  # enforce symmetry
+B = (B + B.T) / 2  # enforce symmetry (optional)
 
 # Center and fit points to be in the [0,1]x[0,1] square for later visualization
 points_B = mds.fit_transform(B, init=C_s)
@@ -174,9 +180,7 @@ points_B = utils.normalize_2Dpointcloud_coordinates(points_B)
 ## Occluding the barycenter and compute distance matrix
 B1, b1 = occlusion_circular(points_B, b)
 dist_matrix_occ = sp.spatial.distance.cdist(B1, B1)
-
-
-
+# ###################################################################################################
 
 
 
@@ -185,6 +189,7 @@ dist_matrix_occ = sp.spatial.distance.cdist(B1, B1)
 
 # ###################################################################################################
 #
+# # Instead of using synthesized point cloud, use one element of the data set
 # # Select a random index corresponding to the chosen digit
 # ind = digit_indices[digit][np.random.randint(len(digit_indices[digit]))]
 # # Extract the probability measure from the third column of Data (p_s)
@@ -205,12 +210,16 @@ dist_matrix_occ = sp.spatial.distance.cdist(B1, B1)
 
 
 
+
+
+
 ## RECOVER VECTOR OF WEIGHTS FROM OCCLUDED SYNTHESIZED BARYCENTER USING utils.get_lambdas FUNCTION,
 #  RECONSTRUCTED BARYCENTER B_RECON USING POT AND NON-OCCLUDED TEMPLATES, AND COMPUTE ERRORS ######
 
 print('Estimating the vector lambda from the perturbed input with perturbed templates')
 
 _, lambdas = utils.get_lambdas(matrix_occ_list, measure_occ_list, dist_matrix_occ, b1)
+#_, lambdas = utils.get_lambdas_constraints(matrix_occ_list, measure_occ_list, dist_matrix_occ, b1)
 
 
 
@@ -298,9 +307,13 @@ axes[3].set_yticks([])  # Remove y-axis ticks
 plt.show()
 
 
+###################################################################################################
+
+n_iter = 50  # Number of random reconstructions to perform
+
+print(f'Now, we produce {n_iter} reconstructions with coefficients taken at random and compute the differences with our method')
 
 
-n_iter = 100  # Number of random reconstructions to perform
 gw_distances = []
 
 for i in range(n_iter):
@@ -314,23 +327,7 @@ for i in range(n_iter):
     gromov_distance = ot.gromov.gromov_wasserstein(B, U, b, b, log=True)[1]
     gw_dist = gromov_distance['gw_dist']
     gw_distances.append(gw_dist)
-
     #print(f'[{i+1}] GW(Target, Random Reconstruction): {gw_dist:.4f}')
-
-
-
-# a = gw_dist_analysis
-#
-# plt.figure(figsize=(8, 5))
-# plt.plot(gw_distances, marker='o', label='GW(Target, Random Reconstruction)')
-# plt.axhline(y=a, color='r', linestyle='--', label=f'GW(Target, Proposed Reconstruction) = {a}')
-# plt.xlabel('Iteration')
-# plt.ylabel('GW Distance')
-# #plt.title('GW Distances')
-# plt.legend()
-# plt.grid(False)
-# plt.tight_layout()
-# plt.show()
 
 
 a = gw_dist_analysis

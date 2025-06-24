@@ -37,8 +37,8 @@ airplane_files = [
 
 
 # Bounds for sample points from the mesh surface
-l_bound = 300
-u_bound = 500
+l_bound = 200
+u_bound = 300
 
 
 # Store the sampled points for each airplane
@@ -85,7 +85,7 @@ lambdas_list = np.array([1/3,1/3,1/3])  # Uniform
 
 ## Synthesize a GW-Barycenter using POT ###########################################################
 print('Synthesizing a GW-Barycenter using the POT Library')
-M = 400 # Dimension of output barycentric matrix is MxM.
+M = 250 # Dimension of output barycentric matrix is MxM.
 
 b = np.ones(M) / M   # Uniform target probability vector
 # b = np.random.rand(M)

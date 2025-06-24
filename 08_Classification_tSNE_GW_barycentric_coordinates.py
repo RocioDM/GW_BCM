@@ -40,7 +40,7 @@ label_selected = label[selected_indices]
 ## GETTING RANDOM TEMPLATES FROM DATASET ##########################################################
 # Templates are of the form (matrix, measure)
 n_classes = len(selected_digits)
-n_temp = 1  # Number of templates for each digit
+n_temp = 6  # Number of templates for each digit
 ind_temp_list = []  # list of template indices from dataset
 measure_temp_list = []  # list of template measures
 matrix_temp_list = []  # list of template dissimilarity matrices

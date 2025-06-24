@@ -121,7 +121,7 @@ def get_lambdas_constraints(matrix_temp_list, measure_temp_list, matrix_input, m
     A @ x == 1,  # Equality constraint
     G @ x <= h   # Inequality constraint
   ]
-  objective = cp.Minimize((1/2) * cp.quad_form(x, A) -b @ x)
+  objective = cp.Minimize((1/2) * cp.quad_form(x, K) -b @ x)
 
   # Solve the quadratic optimization problem
   prob = cp.Problem(objective, constraints)
@@ -174,34 +174,7 @@ def get_lambdas_blowup(X, Y, q):
     lambdas_recon = lambda_var.value
 
 
-
-    # # Objective function:
-    # def objective(lambda_vec):
-    #     return 0.5 * lambda_vec.T @ A @ lambda_vec
-    #
-    # # Constraints: Sum of λ = 1 and λ ≥ 0
-    # constraints = [
-    #     {"type": "eq", "fun": lambda lambda_vec: np.sum(lambda_vec) - 1},
-    # ]
-    #
-    # bounds = [(0, 1) for _ in range(S)]
-    #
-    # # Initial guess (uniform distribution in the simplex)
-    # initial_guess = np.ones(S) / S
-    #
-    # # Optimization
-    # result = minimize(objective, initial_guess, bounds=bounds, constraints=constraints)
-    #
-    # if result.success:
-    #     lambdas_recon = result.x
-    #     # Reconstruct a barycenter
-    #     Y_recon = np.zeros_like(X[0])
-    #     for i in range(S):
-    #         Y_recon += lambdas_recon[i] * X[i]
-    #     return Y_recon, lambdas_recon
-    # else:
-    #     raise ValueError("Optimization failed.")
-
+    # Compute the synthesized output matrix
     Y_recon = np.zeros_like(X[0])
     for i in range(S):
         Y_recon += lambdas_recon[i] * X[i]

@@ -1,5 +1,19 @@
 ## GW-barycentric coordinate space with two classes
 ## In this notebook uses the 2D Point Cloud MNIST dataset
+## We compute GW barycentric coordinates of all training samples
+## with respect to selected templates (two templates, one for each class)
+## using the function "get_lambdas_constraints" from "utils",
+## and visualize them in the 1-dimensional simplex.
+
+## Classification experiment: "MAXIMUM COORDINATE"
+## For each training sample, after computing the two GW barycentric coordinates
+## of the form (lambda1,lambda2), where lambda1 corresponds to one class and lambda2 correspond to the other,
+## we predict its label based on the largest coordinate: max{lambda1,lambda2}
+## Thus, this script provides a one-shot classification method based on the GW-BCM
+## where we classify the input into the class corresponding to the template-label with the
+## highest coordinate in the vector of GW-Barycentric coordinates.
+
+
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -230,7 +244,7 @@ for idx, i in enumerate(range(n_samples_to_plot)):
     axes[idx].set_aspect('equal', adjustable='box')
     axes[idx].set_xticks([])
     axes[idx].set_yticks([])
-    axes[idx].set_title(f'Assigned label = {int(labels[i])} \n Coordinates ({X[i]:.2f}, {Y[i]:.2f})')
+    axes[idx].set_title(f'Assigned label = {int(predicted_labels[i])} \n Coordinates ({X[i]:.2f}, {Y[i]:.2f})')
 
 fig.suptitle("First samples from the data set with their GW-Barycentric Coordinates and Predicted Labels", fontsize=14)
 plt.tight_layout()
