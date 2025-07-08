@@ -1,7 +1,7 @@
 ## 3D Data
 ## This notebook recovers the weights in the analysis problem of GW-barycenters
 ## and tests accuracy on a 3D PointCloud dataset.
-## GW-Barycenters are synthesized as convex combinations of the blow-up templates
+## GW-Barycenters are synthesized as convex combinations of some blow-up templates
 ## We use the functions "get_lambdas", "blow_up" and "get_lambdas_blowup" from "utils"
 
 
@@ -229,48 +229,48 @@ plt.show()
 
 
 
-##
-###################################################################################################
-## RE-ORIENTATION (OPTIONAL) ######################################################################
-
-
-# Alignment / re-orientation using PCA
-def align_to_reference(source_points, reference_points):
-    # Center
-    source_centered = source_points - np.mean(source_points, axis=0)
-    reference_centered = reference_points - np.mean(reference_points, axis=0)
-
-    # PCA
-    pca_source = PCA(n_components=3).fit(source_centered)
-    pca_ref = PCA(n_components=3).fit(reference_centered)
-
-    # Rotation matrix from source to reference
-    R = pca_ref.components_.T @ pca_source.components_
-
-    # Apply rotation
-    aligned = source_centered @ R
-    return aligned + np.mean(reference_points, axis=0)
-
-
-# Apply alignment
-points_B_recon_blow_up_aligned = align_to_reference(points_B_recon_blow_up, points_B)
-points_B_recon_aligned = align_to_reference(points_B_recon, points_B)
-
-# Plot
-fig, axes = plt.subplots(1, 3, figsize=(16, 8), subplot_kw={'projection': '3d'})
-
-axes[0].scatter(points_B[:, 0], points_B[:, 1], points_B[:, 2], s=1)
-axes[0].set_title('Barycenter: Combination of blow-up templates')
-axes[0].set_axis_off()
-
-axes[1].scatter(points_B_recon_blow_up_aligned[:, 0], points_B_recon_blow_up_aligned[:, 1],
-                points_B_recon_blow_up_aligned[:, 2], s=1)
-axes[1].set_title('Reconstruction (Blow-up approach, aligned)')
-axes[1].set_axis_off()
-
-axes[2].scatter(points_B_recon_aligned[:, 0], points_B_recon_aligned[:, 1], points_B_recon_aligned[:, 2], s=1)
-axes[2].set_title('Reconstruction (Fixed-Point approach, aligned)')
-axes[2].set_axis_off()
-
-plt.tight_layout()
-plt.show()
+# ##
+# ###################################################################################################
+# ## RE-ORIENTATION (OPTIONAL) ######################################################################
+#
+#
+# # Alignment / re-orientation using PCA
+# def align_to_reference(source_points, reference_points):
+#     # Center
+#     source_centered = source_points - np.mean(source_points, axis=0)
+#     reference_centered = reference_points - np.mean(reference_points, axis=0)
+#
+#     # PCA
+#     pca_source = PCA(n_components=3).fit(source_centered)
+#     pca_ref = PCA(n_components=3).fit(reference_centered)
+#
+#     # Rotation matrix from source to reference
+#     R = pca_ref.components_.T @ pca_source.components_
+#
+#     # Apply rotation
+#     aligned = source_centered @ R
+#     return aligned + np.mean(reference_points, axis=0)
+#
+#
+# # Apply alignment
+# points_B_recon_blow_up_aligned = align_to_reference(points_B_recon_blow_up, points_B)
+# points_B_recon_aligned = align_to_reference(points_B_recon, points_B)
+#
+# # Plot
+# fig, axes = plt.subplots(1, 3, figsize=(16, 8), subplot_kw={'projection': '3d'})
+#
+# axes[0].scatter(points_B[:, 0], points_B[:, 1], points_B[:, 2], s=1)
+# axes[0].set_title('Barycenter: Combination of blow-up templates')
+# axes[0].set_axis_off()
+#
+# axes[1].scatter(points_B_recon_blow_up_aligned[:, 0], points_B_recon_blow_up_aligned[:, 1],
+#                 points_B_recon_blow_up_aligned[:, 2], s=1)
+# axes[1].set_title('Reconstruction (Blow-up approach, aligned)')
+# axes[1].set_axis_off()
+#
+# axes[2].scatter(points_B_recon_aligned[:, 0], points_B_recon_aligned[:, 1], points_B_recon_aligned[:, 2], s=1)
+# axes[2].set_title('Reconstruction (Fixed-Point approach, aligned)')
+# axes[2].set_axis_off()
+#
+# plt.tight_layout()
+# plt.show()

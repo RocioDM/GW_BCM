@@ -1,7 +1,7 @@
 ## This notebook recovers the weights in the analysis problem of GW-barycenters
 ## and tests accuracy on PointCloud MNIST dataset (2D).
-## In this notebook we use the functions "blow_up" and "get_lambdas_blowup" from "utils" (Fix-Point approach)
-## We use the bow-up technique to synthesize GW-barycenters and solve the analysis problem
+## In this notebook we use the functions "blow_up" and "get_lambdas_blowup" from "utils".
+## We use the bow-up technique to synthesize GW-like barycenters and solve the analysis problem
 
 
 import numpy as np
