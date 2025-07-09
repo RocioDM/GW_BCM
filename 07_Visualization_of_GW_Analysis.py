@@ -25,8 +25,6 @@ dataset_path = utils.load_pointcloud3d()  # The path you got from kagglehub
 
 
 ## GET TEMPLATES
-#number of templates
-n_temp = 3 # For this experiment we use exactly 3 templates due to the visualization
 
 # List of 3 different airplane sample files
 airplane_files = [
@@ -34,6 +32,9 @@ airplane_files = [
     'airplane_0435.off',
     'airplane_0215.off',
 ]
+#number of templates
+n_temp = len(airplane_files)
+
 
 # Bounds for sample points from the mesh surface
 l_bound = 200

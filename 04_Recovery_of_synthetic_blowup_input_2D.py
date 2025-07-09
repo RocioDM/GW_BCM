@@ -30,7 +30,10 @@ mds = MDS(n_components=2, dissimilarity='precomputed', random_state=42)  # Creat
 print('Getting templates and their blow-ups')
 # Templates are of the form (matrix, measure)
 digit = 6  # Pick a digit from 0 to 9
-n_temp = 5  # Number of templates
+
+n_temp = 2  # Number of templates
+# (when n_temp=2, the synthesizing convex combinations of blow-up templates gives rise to GW barycenters)
+
 ind_temp_list = []  # list of template indices from dataset
 measure_temp_list = []  # list of template measures
 matrix_temp_list = []  # list of template dissimilarity matrices

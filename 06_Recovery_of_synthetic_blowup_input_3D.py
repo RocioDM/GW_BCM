@@ -30,7 +30,7 @@ mds = MDS(n_components=3, dissimilarity='precomputed', random_state=42)
 ## GET TEMPLATES
 # List of different airplane sample files
 airplane_files = [
-    'airplane_0236.off',     'airplane_0435.off',     #'airplane_0215.off'
+    'airplane_0236.off',     'airplane_0435.off',     'airplane_0215.off'
 ]
 #number of templates
 n_temp = len(airplane_files)
@@ -38,7 +38,7 @@ n_temp = len(airplane_files)
 print('Getting 3D point cloud templates from the same class and their blow-up')
 # Bounds for sample points from the mesh surface
 l_bound = 300
-u_bound = 400
+u_bound = 500
 
 # Store the sampled points for each airplane
 sampled_data = []
