@@ -169,8 +169,9 @@ M = len(C_s) # Dimension of output barycentric matrix is MxM.
 
 b = np.ones(M) / M   # Uniform target probability vector
 
+# Synthesize barycenter matrix
 B = ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b,
-                                 lambdas_list)  # Synthesize barycenter matrix
+                                 lambdas_list)#, max_iter=2000, tol=1e-12)
 B = (B + B.T) / 2  # enforce symmetry (optional)
 
 # Center and fit points to be in the [0,1]x[0,1] square for later visualization
@@ -225,7 +226,7 @@ _, lambdas = utils.get_lambdas(matrix_occ_list, measure_occ_list, dist_matrix_oc
 
 print('Reconstruction of the input from the estimated lambda vector and using unperturbed templates (using POT for synthesis)')
 M = len(b)
-B_recon = ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b, lambdas)
+B_recon = ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b, lambdas)#, max_iter=2000, tol=1e-12)
 B_recon = (B_recon + B_recon.T) / 2  # sym
 
 
@@ -269,7 +270,7 @@ plt.show()
 
 ## Random reconstruction
 U = ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b,
-                                 np.random.dirichlet(np.ones(n_temp), size=1)[0])
+                                 np.random.dirichlet(np.ones(n_temp), size=1)[0])#, max_iter=2000, tol=1e-12)
 
 ## Compare Original target vs random reconstruction
 gromov_distance = ot.gromov.gromov_wasserstein(B, U, b, b, log=True)[1]
@@ -320,8 +321,8 @@ for i in range(n_iter):
     # Random reconstruction
     U = ot.gromov.gromov_barycenters(
         M, matrix_temp_list, measure_temp_list, b,
-        np.random.dirichlet(np.ones(n_temp), size=1)[0]
-    )
+        np.random.dirichlet(np.ones(n_temp), size=1)[0])#, max_iter=2000, tol=1e-12)
+
 
     # Compare Original target vs random reconstruction
     gromov_distance = ot.gromov.gromov_wasserstein(B, U, b, b, log=True)[1]

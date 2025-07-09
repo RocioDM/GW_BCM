@@ -52,7 +52,7 @@ def main(i, S=5, M=6):
     q = np.ones(M) / M
 
     # Synthesize GW-barycenter based on random lambda
-    D = ot.gromov.gromov_barycenters(M, C_list, p_list, q, lambdas_list)
+    D = ot.gromov.gromov_barycenters(M, C_list, p_list, q, lambdas_list,max_iter=5000, tol=1e-16)
 
     # Run analysis step: recover lambda weights from the synthesized barycenter (fixed-point approach)
     ## Testing the function get_lambdas

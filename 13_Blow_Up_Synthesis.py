@@ -1,4 +1,4 @@
-## Barycenters are synthesized as convex combinations of the blow-up templates
+## "Barycenters" are synthesized/interpreted as convex combinations of the blow-up templates
 ## using the function "blow_up" from "utils"
 ## We use 3D Data - point clouds
 ## We consider 2 and 3 templates
@@ -6,9 +6,12 @@
 ## with respect to (w.r.t.) template 1
 ## vs. w.r.t template 2 
 ## vs. w.r.t template 3 (in case we are using 3 templates)
-## As a conclusion, the user will notice that convex combinations of blow-up
-## templates lead to GW barycentes only when considering 2 templates
-## (this is formalized in the remark on Geodesics in GW space)
+## As a conclusion, the user will notice that convex combinations of blow-up templates
+## won't lead to GW barycenters when considering MORE than 2 templates
+## (for 2 templates there are thoretical guarantees:
+## the convex combinations of their blow-ups determined Geodesics in GW space)
+## Finally, when considering 2 templates, we compare the two methods for synthesizing GW barycenters:
+## via the pre-defined POT functions (fixed-point iteration) and via convex combination of blow-up templates
 
 
 import matplotlib.pyplot as plt
@@ -137,7 +140,7 @@ if n_temp == 3:
 
 print('Sanity check:')
 ## Between different blow-ups for template 1
-print('Comparison between different blow-ups for template 1, all of them show be weak isomorphic, thus we should get GW = 0')
+print('Comparison between different blow-ups for template 1, all of them show be weak isomorphic, thus we should get GW ~ 0')
 gromov_distance = ot.gromov.gromov_wasserstein(temp_blow_up2[0], temp_blow_up1[0], b2, b1, log=True)[1]
 gw_dist = gromov_distance['gw_dist']
 print(f'GW(Temp1,Temp1): {gw_dist}')
@@ -153,7 +156,7 @@ if n_temp == 3:
 
 
 ## Between different blow-ups for template 2
-print('Comparison between different blow-ups for template 2, all of them show be weak isomorphic, thus we should get GW = 0')
+print('Comparison between different blow-ups for template 2, all of them show be weak isomorphic, thus we should get GW ~ 0')
 gromov_distance = ot.gromov.gromov_wasserstein(temp_blow_up2[1], temp_blow_up1[1], b2, b1, log=True)[1]
 gw_dist = gromov_distance['gw_dist']
 print(f'GW(Temp2,Temp2): {gw_dist}')
@@ -170,7 +173,7 @@ if n_temp == 3:
 
 ## Between different blow-ups for template 3
 if n_temp == 3:
-    print('Comparison between different blow-ups for template 3, all of them show be weak isomorphic, thus we should get GW = 0')
+    print('Comparison between different blow-ups for template 3, all of them show be weak isomorphic, thus we should get GW ~ 0')
     gromov_distance = ot.gromov.gromov_wasserstein(temp_blow_up2[2], temp_blow_up1[2], b2, b1, log=True)[1]
     gw_dist = gromov_distance['gw_dist']
     print(f'GW(Temp3,Temp3): {gw_dist}')
@@ -218,9 +221,15 @@ if n_temp == 3:
 
 ###################################################################################################
 
+if n_temp == 2:
+    print('Comparison with POT synthesis of GW barycenters')
+    M = Bary1.shape[0]
+    Bary_POT = ot.gromov.gromov_barycenters(
+        M, temp_blow_up1, [b1,b1], b1, lambdas_list, max_iter=4500, tol=1e-15)
 
-
-
+    gromov_distance = ot.gromov.gromov_wasserstein(Bary1, Bary_POT, b1, b1, log=True)[1]
+    gw_dist = gromov_distance['gw_dist']
+    print(f'GW(Bary_POT,Bary_ConvexComb): {gw_dist}')
 
 
 

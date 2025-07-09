@@ -69,14 +69,14 @@ print('Generating a GW-barycenter with a random lambda vector (synthesis through
 lambdas_list = np.random.dirichlet(np.ones(n_temp), size=1)[0]
 
 # Synthesize a Barycenter using POT
-M = 100  # Dimension of output barycentric matrix is MxM.
+M = 120  # Dimension of output barycentric matrix is MxM.
 
 # b = np.ones(M) / M   # Uniform target probability vector
 b = np.random.rand(M)
 b = b / b.sum()  # Random target probability vector
 
 B = ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b,
-                                 lambdas_list)  # Synthesize barycenter matrix
+                                 lambdas_list, max_iter=5000, tol=1e-16)  # Synthesize barycenter matrix
 B = (B + B.T) / 2  # Enforce symmetry of synthesized barycenter (optional)
 np.fill_diagonal(B, 0)      #zero-diagonal (optional)
 

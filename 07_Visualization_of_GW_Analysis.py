@@ -14,10 +14,12 @@ import os
 import scipy as sp
 import random
 
+
 import ot   # POT: Python Optimal Transport library
 
 ## IMPORT USER DEFINED LIBRARIES ##################################################################
 import utils
+
 
 
 # Path to the downloaded dataset
@@ -38,7 +40,7 @@ n_temp = len(airplane_files)
 
 # Bounds for sample points from the mesh surface
 l_bound = 200
-u_bound = 400
+u_bound = 200
 
 
 # Store the sampled points for each airplane
@@ -94,12 +96,16 @@ recovered_lambdas_list_bu = np.zeros_like(lambdas_list)
 ## Experiments with synthesized barycenters via POT ###############################################
 print('Starting experiments with synthesized barycenters via POT')
 
-M = 300  # Dimension of output barycentric matrix is MxM.
+M = 200  # Dimension of output barycentric matrix is MxM.
 b = np.ones(M) / M  # Uniform target probability vector
+
+
+
 
 for i in range(n_experiments):
     print(f'Synthesizing barycenter for experiment {i+1}')
-    B = ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b, lambdas_list[i])  # Synthesize barycenter matrix
+
+    B = ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b, lambdas_list[i], max_iter=5000, tol=1e-12)  # Synthesize barycenter matrix
 
     print(f'Solving the GW-analysis problem from fixed point approach for experiment {i+1}')
     _, lambdas_fix_point = utils.get_lambdas(matrix_temp_list, measure_temp_list, B, b)
@@ -150,8 +156,8 @@ y = [0, np.sqrt(3), 0, 0]
 
 fig, axes = plt.subplots(2, 2, figsize=(16, 16), gridspec_kw={'hspace': 0.35})
 
-fig.suptitle("Synthesized GW-Barycenters via Fixed Point Iteration", fontsize=22, y=0.97)    ## i.e., via POT function
-fig.text(0.5, 0.525, "Synthesized GW-Barycenters via Combinations of Blow-up Templates",
+fig.suptitle("Synthesized GW Barycenters via Fixed-Point Iteration", fontsize=22, y=0.97)    ## i.e., via POT function
+fig.text(0.5, 0.525, "Synthesized Convex Combinations of Blow-Up Templates",
          ha='center', va='top', fontsize=22)
 
 for i in range(n_experiments):
@@ -189,9 +195,9 @@ for ax_row in axes:
         ax.set_aspect('equal')
 
 axes[0, 0].set_title('Fixed Point Approach', fontsize=20)
-axes[0, 1].set_title('Gradient Approach via Blow-up', fontsize=20)
+axes[0, 1].set_title('Gradient Approach via Blow-Up', fontsize=20)
 axes[1, 0].set_title('Fixed Point Approach', fontsize=20)
-axes[1, 1].set_title('Gradient Approach via Blow-up', fontsize=20)
+axes[1, 1].set_title('Gradient Approach via Blow-Up', fontsize=20)
 
 plt.tight_layout(rect=[0, 0, 1, 0.91])
 

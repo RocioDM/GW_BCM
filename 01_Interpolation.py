@@ -172,7 +172,7 @@ for i, t in enumerate(ts):
         Cb = ot.gromov.gromov_barycenters(
             N=M, Cs=[C1, C2], ps=[a, b], p=p,
             lambdas=[1 - t, t], loss_fun='square_loss',
-            symmetric=True, max_iter=1000, tol=1e-09
+            symmetric=True, max_iter=5000, tol=1e-16
         )
         #sizes = ((1 - t) * np.interp(range(M), np.linspace(0, M, len(a)), a) + t * np.interp(range(M), np.linspace(0, M, len(b)), b)) * scale #Optional (aesthetic)
         sizes = 3*np.ones(M)
@@ -272,7 +272,7 @@ for i, t in enumerate(ts):
 # Styling
 ax.set_ylim(-2, 1.5)
 ax.set_xlim(-8.5, 8.5)
-ax.set_title('GW Interpolation via Barycenters using blow up', fontsize=fs)
+ax.set_title('GW Interpolation via Barycenters Using Blow-Ups', fontsize=fs)
 ax.set_xticks([])
 ax.set_yticks([])
 ax.set_aspect('equal', adjustable='box')

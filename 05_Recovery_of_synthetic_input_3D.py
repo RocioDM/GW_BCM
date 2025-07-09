@@ -37,8 +37,8 @@ n_temp = len(airplane_files)
 
 
 # Bounds for sample points from the mesh surface
-l_bound = 200
-u_bound = 300
+l_bound = 400
+u_bound = 401
 
 
 # Store the sampled points for each airplane
@@ -85,13 +85,13 @@ lambdas_list = np.array([1/3,1/3,1/3])  # Uniform
 
 ## Synthesize a GW-Barycenter using POT ###########################################################
 print('Synthesizing a GW-Barycenter using the POT Library')
-M = 250 # Dimension of output barycentric matrix is MxM.
+M = 400 # Dimension of output barycentric matrix is MxM.
 
 b = np.ones(M) / M   # Uniform target probability vector
 # b = np.random.rand(M)
 # b = b/b.sum()   # Random target probability vector
 
-B =  ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b, lambdas_list)  # Synthesize barycenter matrix
+B =  ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b, lambdas_list, max_iter=5000, tol=1e-16)  # Synthesize barycenter matrix
 
 # Create an MDS instance for visualization
 mds = MDS(n_components=3, dissimilarity='precomputed', random_state=42)
@@ -165,7 +165,7 @@ print(f'GW(Original Target,Reconstructed Target): {gw_dist}')
 fig, axes = plt.subplots(2, 3, figsize=(15, 10), subplot_kw={'projection': '3d'})
 
 # Set the main title for the entire figure
-fig.suptitle("Templates and Blow-ups", fontsize=18)
+fig.suptitle("Templates and Blow-Ups", fontsize=18)
 
 # Plot of original sampled templates
 for i, sampled_points in enumerate(sampled_data[:3]):
@@ -180,7 +180,7 @@ for i in range(n_temp):
     sampled_points = mds.fit_transform(temp_blow_up[i], sampled_data[i:3])
     ax = axes[1, i]
     ax.scatter(sampled_points[:, 0], sampled_points[:, 1], sampled_points[:, 2], s=1)
-    ax.set_title(f"Airplane Blow-up {i + 1}")
+    ax.set_title(f"Airplane Blow-Up {i + 1}")
     ax.set_axis_off()
     ax.grid(False)
 
@@ -198,7 +198,7 @@ axes[0,0].scatter(points_B[:, 0], points_B[:, 1], points_B[:, 2], s=1)
 axes[0,0].set_xlabel('X')
 axes[0,0].set_ylabel('Y')
 axes[0,0].set_zlabel('Z')
-axes[0,0].set_title('Synthesized GW-Barycenter')
+axes[0,0].set_title('Synthesized GW Barycenter')
 axes[0,0].set_axis_off()
 axes[0,0].grid(False)
 
@@ -207,7 +207,7 @@ axes[0,1].scatter(points_B_blowup[:, 0], points_B_blowup[:, 1], points_B_blowup[
 axes[0,1].set_xlabel('X')
 axes[0,1].set_ylabel('Y')
 axes[0,1].set_zlabel('Z')
-axes[0,1].set_title('Blow-up GW-Barycenter')
+axes[0,1].set_title('Blow-Up GW Barycenter')
 axes[0,1].set_axis_off()
 axes[0,1].grid(False)
 
@@ -216,7 +216,7 @@ axes[1,0].scatter(points_B_recon[:, 0], points_B_recon[:, 1], points_B_recon[:, 
 axes[1,0].set_xlabel('X')
 axes[1,0].set_ylabel('Y')
 axes[1,0].set_zlabel('Z')
-axes[1,0].set_title('Reconstruction (Fixed-Point approach)')
+axes[1,0].set_title('Reconstruction (Fixed-Point Approach)')
 axes[1,0].set_axis_off()
 axes[1,0].grid(False)
 
@@ -225,7 +225,7 @@ axes[1,1].scatter(points_B_recon_blow_up[:, 0], points_B_recon_blow_up[:, 1], po
 axes[1,1].set_xlabel('X')
 axes[1,1].set_ylabel('Y')
 axes[1,1].set_zlabel('Z')
-axes[1,1].set_title('Reconstruction (Blow-up approach)')
+axes[1,1].set_title('Reconstruction (Blow-Up Approach)')
 axes[1,1].set_axis_off()
 axes[1,1].grid(False)
 

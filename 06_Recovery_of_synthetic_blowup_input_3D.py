@@ -30,15 +30,15 @@ mds = MDS(n_components=3, dissimilarity='precomputed', random_state=42)
 ## GET TEMPLATES
 # List of different airplane sample files
 airplane_files = [
-    'airplane_0236.off',     'airplane_0435.off',     'airplane_0215.off'
+    'airplane_0236.off',     'airplane_0435.off'#,     'airplane_0215.off'
 ]
 #number of templates
 n_temp = len(airplane_files)
 
 print('Getting 3D point cloud templates from the same class and their blow-up')
 # Bounds for sample points from the mesh surface
-l_bound = 300
-u_bound = 500
+l_bound = 400
+u_bound = 401
 
 # Store the sampled points for each airplane
 sampled_data = []
@@ -164,7 +164,7 @@ print(f'GW(Target, Reconstructed Target): {gw_dist}')
 fig, axes = plt.subplots(2, n_temp, figsize=(15, 10), subplot_kw={'projection': '3d'})
 
 # Set the main title for the entire figure
-fig.suptitle("Templates and Blow-ups", fontsize=18)
+fig.suptitle("Templates and Blow-Ups", fontsize=18)
 
 # Plot of original sampled templates
 for i, sampled_points in enumerate(sampled_data[:3]):
@@ -179,7 +179,7 @@ for i in range(n_temp):
     sampled_points = mds.fit_transform(temp_blow_up[i], sampled_data[i:3])
     ax = axes[1, i]
     ax.scatter(sampled_points[:, 0], sampled_points[:, 1], sampled_points[:, 2], s=1)
-    ax.set_title(f"Airplane Blow-up {i + 1}")
+    ax.set_title(f"Airplane Blow-Up {i + 1}")
     ax.set_axis_off()
     ax.grid(False)
 
@@ -197,7 +197,7 @@ axes[0].scatter(points_B[:, 0], points_B[:, 1], points_B[:, 2], s=1)
 axes[0].set_xlabel('X')
 axes[0].set_ylabel('Y')
 axes[0].set_zlabel('Z')
-axes[0].set_title('Barycenter: Combination of blow-up templates')
+axes[0].set_title('Barycenter: Combination of Blow-Up Templates')
 axes[0].set_axis_off()
 axes[0].grid(False)
 
@@ -206,7 +206,7 @@ axes[1].scatter(points_B_recon_blow_up[:, 0], points_B_recon_blow_up[:, 1], poin
 axes[1].set_xlabel('X')
 axes[1].set_ylabel('Y')
 axes[1].set_zlabel('Z')
-axes[1].set_title('Reconstruction (Blow-up approach)')
+axes[1].set_title('Reconstruction (Blow-Up Approach)')
 axes[1].set_axis_off()
 axes[1].grid(False)
 
@@ -215,7 +215,7 @@ axes[2].scatter(points_B_recon[:, 0], points_B_recon[:, 1], points_B_recon[:, 2]
 axes[2].set_xlabel('X')
 axes[2].set_ylabel('Y')
 axes[2].set_zlabel('Z')
-axes[2].set_title('Reconstruction (Fixed-Point approach)')
+axes[2].set_title('Reconstruction (Fixed-Point Approach)')
 axes[2].set_axis_off()
 axes[2].grid(False)
 
