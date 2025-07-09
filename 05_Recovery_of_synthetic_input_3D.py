@@ -24,16 +24,16 @@ dataset_path = utils.load_pointcloud3d()  # The path you got from kagglehub
 
 ## GET TEMPLATES
 print('Getting 3D point cloud templates from the same class')
-#number of templates
-n_temp = 3
 
-# List of sample files from the data set to serve as templates
-# Particularly, here we select 3 different airplanes
+## GET TEMPLATES
+# List of different airplane sample files
 airplane_files = [
     'airplane_0236.off',
     'airplane_0435.off',
-    'airplane_0215.off',
- ]
+    'airplane_0215.off'
+]
+#number of templates
+n_temp = len(airplane_files)
 
 
 # Bounds for sample points from the mesh surface
