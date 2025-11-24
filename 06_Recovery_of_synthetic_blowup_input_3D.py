@@ -1,7 +1,7 @@
 ## 3D Data
 ## This notebook recovers the weights in the analysis problem of GW-barycenters
 ## and tests accuracy on a 3D PointCloud dataset.
-## GW-Barycenters are synthesized as convex combinations of some blow-up templates
+## GW-Barycenters are synthesized as convex combinations of (some) blow-up templates
 ## We use the functions "get_lambdas", "blow_up" and "get_lambdas_blowup" from "utils"
 
 
@@ -30,15 +30,15 @@ mds = MDS(n_components=3, dissimilarity='precomputed', random_state=42)
 ## GET TEMPLATES
 # List of different airplane sample files
 airplane_files = [
-    'airplane_0236.off',     'airplane_0435.off'#,     'airplane_0215.off'
+    'airplane_0236.off',     'airplane_0435.off',     'airplane_0215.off'
 ]
 #number of templates
 n_temp = len(airplane_files)
 
 print('Getting 3D point cloud templates from the same class and their blow-up')
 # Bounds for sample points from the mesh surface
-l_bound = 400
-u_bound = 401
+l_bound = 400 #400
+u_bound = 401 #401
 
 # Store the sampled points for each airplane
 sampled_data = []

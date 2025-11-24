@@ -32,7 +32,8 @@ airplane_files = [
     'airplane_0435.off',
     'airplane_0215.off'
 ]
-#number of templates
+
+# number of templates
 n_temp = len(airplane_files)
 
 
