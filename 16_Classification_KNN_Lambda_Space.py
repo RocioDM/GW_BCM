@@ -102,9 +102,27 @@ plt.show()
 
 ## GET TRAINING SAMPLES FROM DATASET ##############################################################
 # Split into training and test sets (test_size% test, (100-test_size)% training)
-percent = 0.745  #0.0825 ---> 1800 samples when working with class digits 0 and 4 / 0.745--->500
-X_train, X_test, y_train, y_test = train_test_split(Data_selected, label_selected, test_size=percent, random_state=42, stratify=label_selected)
 
+# First split off 200 for training
+X_train_all, X_temp, y_train_all, y_temp = train_test_split(
+    Data_selected,
+    label_selected,
+    train_size=1000,
+    random_state=42,
+    stratify=label_selected
+)
+
+# Take exactly 50 for testing
+X_test, _, y_test, _ = train_test_split(
+    X_temp,
+    y_temp,
+    train_size=500,
+    random_state=42,
+    stratify=y_temp
+)
+
+X_train = X_train_all
+y_train = y_train_all
 
 # Initialize lists for training set
 train_indices = []
