@@ -17,7 +17,7 @@ import utils
 
 
 ## Data preparation
-## The four distributions are constructed from 4 simple images
+## The four distributions are constructed from 4 simple images (taken from POT tutorial)
 
 def im2mat(img):
     """Converts and image to matrix (one pixel per line)"""
@@ -58,7 +58,7 @@ Cs_except_i = [C for j, C in enumerate(Cs) if j != i]
 ps_except_i = [p for j, p in enumerate(ps) if j != i]
 
 
-M = 32
+M = 30
 p = ot.unif(M)
 
 
