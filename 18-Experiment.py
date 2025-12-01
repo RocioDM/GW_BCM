@@ -54,6 +54,7 @@ Cs = [cs / cs.max() for cs in Cs]
 ps = [ot.unif(ns[s]) for s in range(S)]
 
 i = 3
+
 Cs_except_i = [C for j, C in enumerate(Cs) if j != i]
 ps_except_i = [p for j, p in enumerate(ps) if j != i]
 
@@ -70,7 +71,9 @@ obj_recon, lambdas_obj = utils.get_lambdas(Cs_except_i, ps_except_i,Cs[i],ps[i])
 
 
 
-## PLOT RECONSTRUCTED BARYCENTER, AND OBJECTIVE USING MDS #######################
+
+
+## PLOT  ##########################################################################################
 mds = MDS(n_components=2, dissimilarity='precomputed', random_state=42)
 
 # 1) Reconstructed barycenter (from utils.get_lambdas)
@@ -79,9 +82,26 @@ points_recon = mds.fit_transform(obj_recon)
 # 2) True star shape xs[3]
 points_obj = mds.fit_transform(Cs[i])
 
+# 3) Templates: MDS embedding for the 3 kept templates
+points_temp = [mds.fit_transform(Cs_except_i[s]) for s in range(S-1)]
 
-## PLOT INPUT vs RECONSTRUCTED vs STAR ############################################################
-fig, axes = plt.subplots(1, 2, figsize=(15, 4))
+## PLOT THE 3 TEMPLATES ##########################################################################
+fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+
+for k in range(3):
+    axes[k].scatter(points_temp[k][:, 0], points_temp[k][:, 1], s=100)
+    axes[k].set_title(f'Template {k+1}')
+    axes[k].set_xticks([])
+    axes[k].set_yticks([])
+    axes[k].set_aspect('equal')
+    axes[k].set_frame_on(False)  # <- removes the box
+
+plt.tight_layout()
+plt.show()
+
+
+## PLOT RECONSTRUCTED vs OBJECTIVE ############################################################
+fig, axes = plt.subplots(1, 2, figsize=(18, 6))
 
 # --- True Objective ---
 axes[0].scatter(points_obj[:, 0], points_obj[:, 1], s=100)
@@ -101,17 +121,16 @@ plt.tight_layout()
 plt.show()
 
 
-
-
+###################################################################################################
 print('Comparing with real synthetic GW Barycenters')
 
 ## simplex grid --> triangle (3 templates)
-N = 3
+N = 20
 pts = []
-for i in range(N + 1):
-    for j in range(N + 1 - i):
-        k = N - i - j
-        pts.append((i / N, j / N, k / N))
+for l in range(N + 1):
+    for j in range(N + 1 - l):
+        k = N - l - j
+        pts.append((l / N, j / N, k / N))
 pts=np.array(pts)
 
 
