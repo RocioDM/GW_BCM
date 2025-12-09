@@ -93,7 +93,9 @@ B_recon_blow_up, lambdas_recon_blow_up = utils.get_lambdas_blowup(temp_blow_up, 
 ## Fit and transform the distance matrix through MDS
 points_B_recon_blow_up = mds.fit_transform(B_recon_blow_up)
 
-
+## test if we have created a barycenter thru the blow-up method
+a = utils.get_lambdas_blowup_matrix(temp_blow_up, B, b)
+print(f'Barycenter test: {a}') #if the value is zero, we have a barycenter
 
 ## Print accuracy of the lambdas-recovery #########################################################
 print('Computing errors')

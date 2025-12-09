@@ -81,6 +81,20 @@ B = (B + B.T) / 2  # Enforce symmetry of synthesized barycenter (optional)
 np.fill_diagonal(B, 0)      #zero-diagonal (optional)
 
 
+###################################################################################################
+## CHECK IF THIS SYNTHETIC BARYCENTER IS ACTUALLY A CRITICAL POINT FOR THE BLOW-UP APPROACH
+
+B_blowup, b_blowup, temp_blow_up = utils.blow_up(matrix_temp_list, measure_temp_list, B, b)
+
+## test if we have created a barycenter thru the blow-up method
+a = utils.get_lambdas_blowup_matrix(temp_blow_up, B_blowup, b_blowup)
+print(f'Barycenter test : {a}. If this value is zero, it is a critical point for the blow-up approach') #if the value is zero, we have a barycenter
+
+
+###################################################################################################
+
+
+
 ## RECOVER VECTOR OF WEIGHTS AND RECONSTRUCTED BARYCENTER B_RECON FROM SYNTHESIZED BARYCENTER USING
 # utils.get_lambdas FUNCTION AND COMPUTING ERROR ##################################################
 print('Estimation of the lambda vector with our method, and reconstruction')

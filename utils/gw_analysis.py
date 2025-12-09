@@ -232,3 +232,35 @@ def blow_up(matrix_temp_list, measure_temp_list, B, b):
             temp_blow_up[j] = Z[V_1, V_2]
 
     return B, b, temp_blow_up
+
+
+def get_lambdas_blowup_matrix(X, Y, q):
+    '''
+    Here we copied the function 'get_lambdas_blowup'
+    but return the value of lambda^T A lambda
+    if such value is zero, we have a barycenter
+    '''
+    S = len(X) # number of templates
+
+    ## Cost function to be used in the GW - analysis problem via blow-ups
+    A = np.zeros((S, S))
+
+    for s in range(S):
+        for r in range(S):
+            #A[s, r] = np.sum(q * (X[s] - Y) @ (X[r] - Y).T @ q)
+            A[s, r] = np.trace((X[s] - Y) @ np.diag(q) @ (X[r] - Y).T @ np.diag(q))
+
+    lambda_var = cp.Variable(S)
+    objective = 0.5 * cp.quad_form(lambda_var, A)
+    constraints = [lambda_var >= 0, cp.sum(lambda_var) == 1]
+    prob = cp.Problem(cp.Minimize(objective), constraints)
+    prob.solve(solver=cp.OSQP)  # Or ECOS
+
+    lambdas_recon = lambda_var.value
+
+
+    # Compute the synthesized output matrix
+    Y_recon = np.zeros_like(X[0])
+    for i in range(S):
+        Y_recon += lambdas_recon[i] * X[i]
+    return lambdas_recon.T @ A @ lambdas_recon

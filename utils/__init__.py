@@ -8,3 +8,5 @@ from .gw_analysis import get_lambdas_constraints
 
 from .gw_analysis import get_lambdas_blowup
 from .gw_analysis import blow_up
+
+from .gw_analysis import get_lambdas_blowup_matrix

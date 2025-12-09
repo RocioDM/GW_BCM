@@ -108,6 +108,13 @@ Bary1 = sum(lambdas_list[j] * temp_blow_up1[j] for j in range(n_temp))
 ###################################################################################################
 
 
+
+## test if we have created a barycenter thru the blow-up method
+a = utils.get_lambdas_blowup_matrix(temp_blow_up1, Bary1, b1)
+print(f'Barycenter test: {a}') #if the value is zero, we have a barycenter
+
+
+
 ###################################################################################################
 ## Templates blow-up w.r.t. the second template
 print('Blow-up w.r.t. template 2 (reference)')
@@ -120,6 +127,10 @@ print('Size of the blow-up: ', B2.shape[0])
 print('Synthesizing a GW-Barycenter as convex combination of blow-up templates (denoted Bary2)')
 Bary2 = sum(lambdas_list[j] * temp_blow_up2[j] for j in range(n_temp))
 ###################################################################################################
+
+## test if we have created a barycenter thru the blow-up method
+a = utils.get_lambdas_blowup_matrix(temp_blow_up2, Bary2, b2)
+print(f'Barycenter test: {a}') #if the value is zero, we have a barycenter
 
 
 ###################################################################################################
