@@ -9,12 +9,12 @@ from scipy.spatial.distance import cdist
 
 n_templates = 3
 lam = np.ones(n_templates) / n_templates
-n_experiments = 10
+n_experiments = 5
 
 mean_distances = []
 std_distances = []
 
-Ns = [10, 20, 30, 40, 50]
+Ns = [10, 20, 30, 40]
 for N in Ns:
     # generate symmetric templates
     templates = []
@@ -37,9 +37,32 @@ for N in Ns:
 
     distances = []
 
+    rng = np.random.default_rng(42)
+
     for _ in range(n_experiments):
-        Y  = gromov_barycenters(M, templates, templates_measures, q, lam)
-        Yp = gromov_barycenters(M, templates, templates_measures, q, lam)
+        state = rng.bit_generator.state
+        np.random.seed(42)
+        Y = gromov_barycenters(
+            M,
+            templates,
+            templates_measures,
+            q,
+            lam,
+            max_iter=1000,
+            tol=1e-16
+            )
+
+        rng.bit_generator.state = state
+        np.random.seed(42)
+        Yp = gromov_barycenters(
+            M,
+            templates,
+            templates_measures,
+            q,
+            lam,
+            max_iter=1000,
+            tol=1e-16
+            )
 
         # GW distance between Y and Y'
         gw = gromov_wasserstein2(Y, Yp, ot.unif(M), ot.unif(M))

@@ -239,6 +239,7 @@ def get_lambdas_blowup_matrix(X, Y, q):
     Here we copied the function 'get_lambdas_blowup'
     but return the value of lambda^T A lambda
     if such value is zero, we have a barycenter
+    This is useful for compatibility between synthesis algorithms
     '''
     S = len(X) # number of templates
 

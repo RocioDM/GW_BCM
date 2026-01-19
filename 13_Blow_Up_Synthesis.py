@@ -8,7 +8,7 @@
 ## vs. w.r.t template 3 (in case we are using 3 templates)
 ## As a conclusion, the user will notice that convex combinations of blow-up templates
 ## won't lead to GW barycenters when considering MORE than 2 templates
-## (for 2 templates there are thoretical guarantees:
+## (for 2 templates there are theoretical guarantees:
 ## the convex combinations of their blow-ups determined Geodesics in GW space)
 ## Finally, when considering 2 templates, we compare the two methods for synthesizing GW barycenters:
 ## via the pre-defined POT functions (fixed-point iteration) and via convex combination of blow-up templates

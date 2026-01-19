@@ -11,6 +11,7 @@ import trimesh
 import os
 import scipy as sp
 from sklearn.manifold import MDS
+import math
 
 import ot   # POT: Python Optimal Transport library
 
@@ -92,10 +93,37 @@ b = np.ones(M) / M   # Uniform target probability vector
 # b = np.random.rand(M)
 # b = b/b.sum()   # Random target probability vector
 
-B =  ot.gromov.gromov_barycenters(M, matrix_temp_list, measure_temp_list, b, lambdas_list, max_iter=5000, tol=1e-16)  # Synthesize barycenter matrix
+max_tries = 20
+
+
+B = ot.gromov.gromov_barycenters(
+    M,
+    matrix_temp_list,
+    measure_temp_list,
+    b,
+    lambdas_list,
+    max_iter=5000,
+    tol=1e-16
+)
+
+B_blow_up, b_blow_up, temp_blow_up = utils.blow_up(
+    matrix_temp_list, measure_temp_list, B, b
+)
+
+a = utils.get_lambdas_blowup_matrix(temp_blow_up, B_blow_up, b_blow_up)
+print(f'Barycenter test: {a}') #if the value is zero, we have a barycenter
+
 
 # Create an MDS instance for visualization
 mds = MDS(n_components=3, dissimilarity='precomputed', random_state=42)
+
+print('Size of the blow-up: ', B_blow_up.shape[0])
+points_B_blowup = mds.fit_transform(B_blow_up,B)
+B_recon_blow_up, lambdas_recon_blow_up = utils.get_lambdas_blowup(temp_blow_up, B_blow_up, b_blow_up)
+## Fit and transform the distance matrix through MDS
+points_B_recon_blow_up = mds.fit_transform(B_recon_blow_up)
+
+
 # Fit and transform the distance matrix
 points_B = mds.fit_transform(B)
 
@@ -107,15 +135,6 @@ print('Solving the GW-analysis problem with the two proposed methods')
 B_recon, lambdas = utils.get_lambdas(matrix_temp_list, measure_temp_list, B, b)
 ## Fit and transform the distance matrix through MDS
 points_B_recon = mds.fit_transform(B_recon)
-
-
-## From the blow-up approach
-B_blow_up, b_blow_up, temp_blow_up = utils.blow_up(matrix_temp_list, measure_temp_list, B, b)
-print('Size of the blow-up: ', B_blow_up.shape[0])
-points_B_blowup = mds.fit_transform(B_blow_up,B)
-B_recon_blow_up, lambdas_recon_blow_up = utils.get_lambdas_blowup(temp_blow_up, B_blow_up, b_blow_up)
-## Fit and transform the distance matrix through MDS
-points_B_recon_blow_up = mds.fit_transform(B_recon_blow_up)
 
 
 
